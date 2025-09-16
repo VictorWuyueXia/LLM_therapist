@@ -1,0 +1,13 @@
+2022-11-09 09:30:40,893 [INFO] 8901 - question_lib_v3_8901.json
+2022-11-09 09:30:41,989 [INFO] 8901 -  I understand that you are worried about covid-19. But it's important to stay calm and take precautions. Wash your hands, cover your nose and mouth when you sneeze and cough, and stay home if you are feeling sick.
+2022-11-09 09:30:42,647 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-09 09:30:42,650 [INFO] 8901 - ('ITEM A', '5')
+2022-11-09 09:30:42,651 [INFO] 8901 - ('Item number: ', 5)
+2022-11-09 09:30:42,651 [INFO] 8901 - ***************************************************************************************************
+2022-11-09 09:30:42,651 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-09 09:30:42,652 [INFO] 8901 - ('Question Action', '4')
+2022-11-09 09:30:42,652 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-11-09 09:30:42,652 [INFO] 8901 - ('score in log', [])
+2022-11-09 09:30:42,652 [INFO] 8901 - Have you taken days off recently?
+2022-11-09 09:30:42,652 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-11-09 09:30:42,653 [INFO] 8901 -    Have you taken days off recently?

@@ -1,0 +1,68 @@
+2022-09-18 15:38:40,689 [INFO] 8901 - question_lib_v3_8901.json
+2022-09-18 15:38:41,523 [INFO] 8901 -  I understand that you are worried about covid-19. I would encourage you to take some time for yourself and relax. You can watch a movie, read a book, or talk to a friend.
+2022-09-18 15:38:42,229 [INFO] 8901 - ('state in choose action: ', 0)
+2022-09-18 15:38:42,233 [INFO] 8901 - ('ITEM A', '5')
+2022-09-18 15:38:42,233 [INFO] 8901 - ('Item number: ', 5)
+2022-09-18 15:38:42,233 [INFO] 8901 - ***************************************************************************************************
+2022-09-18 15:38:42,233 [INFO] 8901 - ('state in choose action: ', 0)
+2022-09-18 15:38:42,234 [INFO] 8901 - ('Question Action', '4')
+2022-09-18 15:38:42,234 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-09-18 15:38:42,234 [INFO] 8901 - ('score in log', [])
+2022-09-18 15:38:42,234 [INFO] 8901 - Have you taken days off recently?
+2022-09-18 15:38:42,234 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-09-18 15:38:42,235 [INFO] 8901 -    Have you taken days off recently?
+2022-09-18 15:39:08,853 [INFO] 8901 - [' I took days off', '  But I feel depressed recently', '']
+2022-09-18 15:39:10,054 [INFO] 8901 - [['DLA_5_work_dayoff', 0], ['DLA_1_mood', 1]]
+2022-09-18 15:39:10,054 [INFO] 8901 - ([['DLA_5_work_dayoff', 0], ['DLA_1_mood', 1]], ['I took days off', ' But I feel depressed recently', ''])
+2022-09-18 15:39:10,054 [INFO] 8901 - check
+2022-09-18 15:39:10,054 [INFO] 8901 - 3
+2022-09-18 15:39:10,054 [INFO] 8901 - ('Evaluate DLA: ', ['DLA_5_work_dayoff', 0])
+2022-09-18 15:39:10,054 [INFO] 8901 - ('label', 'DLA_5_work_dayoff')
+2022-09-18 15:39:10,054 [INFO] 8901 - 1
+2022-09-18 15:39:10,054 [INFO] 8901 - ('Score: ', 0)
+2022-09-18 15:39:10,054 [INFO] 8901 - check1
+2022-09-18 15:39:10,054 [INFO] 8901 - 5
+2022-09-18 15:39:10,054 [INFO] 8901 - 5
+2022-09-18 15:39:10,054 [INFO] 8901 - ('item_number, question_number, valid:', '5', 4, 1)
+2022-09-18 15:39:10,055 [INFO] 8901 - ('Evaluate DLA: ', ['DLA_1_mood', 1])
+2022-09-18 15:39:10,055 [INFO] 8901 - ('label', 'DLA_1_mood')
+2022-09-18 15:39:10,055 [INFO] 8901 - 1
+2022-09-18 15:39:10,055 [INFO] 8901 - ('Score: ', 1)
+2022-09-18 15:39:10,055 [INFO] 8901 - check1
+2022-09-18 15:39:10,055 [INFO] 8901 - 1
+2022-09-18 15:39:10,055 [INFO] 8901 - 4
+2022-09-18 15:39:10,055 [INFO] 8901 - ('item_number, question_number, valid:', '1', 2, 1)
+2022-09-18 15:39:10,055 [INFO] 8901 - ('last_question in evaluate_result: ', '')
+2022-09-18 15:39:10,055 [INFO] 8901 - 
+2022-09-18 15:39:10,055 [INFO] 8901 - ('DLA_result:', [['DLA_5_work_dayoff', 0], ['DLA_1_mood', 1]])
+2022-09-18 15:39:10,055 [INFO] 8901 - ('valid:', 1)
+2022-09-18 15:39:10,055 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-09-18 15:39:10,055 [INFO] 8901 - ('last question', '')
+2022-09-18 15:39:10,056 [INFO] 8901 - ('q_target', 1.3411954029150002, 'q_predict', 3.9665015107885)
+2022-09-18 15:39:10,056 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.703971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.490217
+5  0.0  1.000000  1.967896  0.990000  1.000000  1.000000)
+2022-09-18 15:39:10,067 [INFO] 8901 - ***************************************************************************************************
+2022-09-18 15:39:10,067 [INFO] 8901 - ('state in choose action: ', 4)
+2022-09-18 15:39:10,068 [INFO] 8901 - ('Question Action', '5')
+2022-09-18 15:39:10,068 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 0])
+2022-09-18 15:39:10,068 [INFO] 8901 - ('score in log', [])
+2022-09-18 15:39:10,068 [INFO] 8901 - Are you showing up to your plans?
+2022-09-18 15:39:10,068 [INFO] 8901 - ('', 'Are you showing up to your plans?')
+2022-09-18 15:39:10,070 [INFO] 8901 -   Are you showing up to your plans?
+2022-09-18 15:39:32,288 [INFO] 8901 - [' I go up to my plants but I feel really depressed recently', '']
+2022-09-18 15:39:32,931 [INFO] 8901 - [['DLA_1_mood', 2]]
+2022-09-18 15:39:32,931 [INFO] 8901 - ([['DLA_1_mood', 2]], ['I go up to my plants but I feel really depressed recently', ''])
+2022-09-18 15:39:32,932 [INFO] 8901 - check
+2022-09-18 15:39:32,932 [INFO] 8901 - 3
+2022-09-18 15:39:32,932 [INFO] 8901 - ('Evaluate DLA: ', ['DLA_1_mood', 2])
+2022-09-18 15:39:32,932 [INFO] 8901 - ('label', 'DLA_1_mood')
+2022-09-18 15:39:32,932 [INFO] 8901 - 0
+2022-09-18 15:39:32,932 [INFO] 8901 - ('Score: ', 2)
+2022-09-18 15:39:33,224 [INFO] 8901 -  Up to your plants, but you feel really depressed recently.
+2022-09-18 15:39:33,227 [INFO] 8901 - You mentioned that  up to your plants, but you feel really depressed recently. Can you tell me more?
+2022-09-18 15:39:33,229 [INFO] 8901 - 7

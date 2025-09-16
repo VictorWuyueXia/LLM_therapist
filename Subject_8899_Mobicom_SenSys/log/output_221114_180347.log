@@ -1,0 +1,13 @@
+2022-11-14 18:03:47,739 [INFO] 8901 - question_lib_v3_8901.json
+2022-11-14 18:03:48,558 [INFO] 8901 -  I completely understand your concerns. I would recommend that you reach out to your family members, friends, or therapist to help you out.
+2022-11-14 18:03:50,517 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-14 18:03:50,521 [INFO] 8901 - ('ITEM A', '5')
+2022-11-14 18:03:50,521 [INFO] 8901 - ('Item number: ', 5)
+2022-11-14 18:03:50,521 [INFO] 8901 - ***************************************************************************************************
+2022-11-14 18:03:50,521 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-14 18:03:50,523 [INFO] 8901 - ('Question Action', '4')
+2022-11-14 18:03:50,523 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-11-14 18:03:50,523 [INFO] 8901 - ('score in log', [])
+2022-11-14 18:03:50,523 [INFO] 8901 - Have you taken days off recently?
+2022-11-14 18:03:50,523 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-11-14 18:03:50,524 [INFO] 8901 -    Have you taken days off recently?

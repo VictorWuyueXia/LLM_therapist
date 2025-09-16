@@ -1,0 +1,92 @@
+2022-11-07 16:59:46,980 [INFO] 8901 - question_lib_v3_8901.json
+2022-11-07 16:59:47,646 [INFO] 8901 -  I understand that you are worried about covid-19. I would recommend that you stay away from large crowds and practice good hygiene.
+2022-11-07 16:59:48,243 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-07 16:59:48,246 [INFO] 8901 - ('ITEM A', '5')
+2022-11-07 16:59:48,246 [INFO] 8901 - ('Item number: ', 5)
+2022-11-07 16:59:48,246 [INFO] 8901 - ***************************************************************************************************
+2022-11-07 16:59:48,246 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-07 16:59:48,247 [INFO] 8901 - ('Question Action', '4')
+2022-11-07 16:59:48,247 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-11-07 16:59:48,248 [INFO] 8901 - ('score in log', [])
+2022-11-07 16:59:48,248 [INFO] 8901 - Have you taken days off recently?
+2022-11-07 16:59:48,248 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-11-07 16:59:48,249 [INFO] 8901 -    Have you taken days off recently?
+2022-11-07 17:00:18,488 [INFO] 8901 - [' Yes, I have', '']
+2022-11-07 17:00:19,104 [INFO] 8901 - [['DLA', 'Yes']]
+2022-11-07 17:00:19,104 [INFO] 8901 - ([['DLA', 'Yes']], ['Yes, I have', ''])
+2022-11-07 17:00:19,104 [INFO] 8901 - check
+2022-11-07 17:00:19,105 [INFO] 8901 - 3
+2022-11-07 17:00:19,105 [INFO] 8901 - 1 + There is direct yes/no/stop to the question
+2022-11-07 17:00:19,105 [INFO] 8901 - 2
+2022-11-07 17:00:19,105 [INFO] 8901 - ('Evaluate DLA: ', ['DLA', 'Yes'])
+2022-11-07 17:00:19,105 [INFO] 8901 -  
+2022-11-07 17:00:19,105 [INFO] 8901 - ('DLA_result:', [['DLA', 'Yes']])
+2022-11-07 17:00:19,105 [INFO] 8901 - ('valid:', 1)
+2022-11-07 17:00:19,105 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-11-07 17:00:19,105 [INFO] 8901 - ('last question', ' ')
+2022-11-07 17:00:19,106 [INFO] 8901 - ('q_target', 1.3411954029150002, 'q_predict', 3.9665015107885)
+2022-11-07 17:00:19,106 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.703971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.490217
+5  0.0  1.000000  1.967896  0.990000  1.000000  1.000000)
+2022-11-07 17:00:19,120 [INFO] 8901 - ***************************************************************************************************
+2022-11-07 17:00:19,120 [INFO] 8901 - ('state in choose action: ', 4)
+2022-11-07 17:00:19,121 [INFO] 8901 - ('Question Action', '5')
+2022-11-07 17:00:19,121 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 0])
+2022-11-07 17:00:19,121 [INFO] 8901 - ('score in log', [])
+2022-11-07 17:00:19,122 [INFO] 8901 - Are you showing up to your plans?
+2022-11-07 17:00:19,122 [INFO] 8901 - (' ', 'Are you showing up to your plans?')
+2022-11-07 17:00:19,123 [INFO] 8901 -    Are you showing up to your plans?
+2022-11-07 17:00:55,472 [INFO] 8901 - ['None']
+2022-11-07 17:00:56,097 [INFO] 8901 - [['DLA', 'No']]
+2022-11-07 17:00:56,097 [INFO] 8901 - ([['DLA', 'No']], ['None'])
+2022-11-07 17:00:56,097 [INFO] 8901 - check
+2022-11-07 17:00:56,097 [INFO] 8901 - 3
+2022-11-07 17:00:56,097 [INFO] 8901 - 1 + There is direct yes/no/stop to the question
+2022-11-07 17:00:56,098 [INFO] 8901 - 2
+2022-11-07 17:00:56,098 [INFO] 8901 - If score > 1 for direct yes/no/stop
+2022-11-07 17:00:56,414 [INFO] 8901 -  You're not showing up for appointments and other obligations.
+2022-11-07 17:00:57,120 [INFO] 8901 -  could you tell me more about it?
+2022-11-07 17:00:57,122 [INFO] 8901 - It seems that  You're not showing up for appointments and other obligations.  could you tell me more about it?
+2022-11-07 17:00:57,125 [INFO] 8901 - 4
+2022-11-07 17:03:07,726 [INFO] 8901 - ('5', 'start')
+2022-11-07 17:03:08,578 [INFO] 8901 -  I understand that you don't want to talk to me right now, but it's important that you do. You're not doing yourself any favors by not showing up for your appointments or other obligations.
+2022-11-07 17:03:08,578 [INFO] 8901 - ('therapist_resp in evaluate Y/N', " I understand that you don't want to talk to me right now, but it's important that you do. You're not doing yourself any favors by not showing up for your appointments or other obligations.")
+2022-11-07 17:03:08,578 [INFO] 8901 - 6
+2022-11-07 17:03:08,578 [INFO] 8901 - ('Evaluate DLA: ', ['DLA', 'No'])
+2022-11-07 17:03:08,578 [INFO] 8901 -  I understand that you don't want to talk to me right now, but it's important that you do. You're not doing yourself any favors by not showing up for your appointments or other obligations.
+2022-11-07 17:03:08,578 [INFO] 8901 - ('DLA_result:', [['DLA', 'No']])
+2022-11-07 17:03:08,579 [INFO] 8901 - ('valid:', 1)
+2022-11-07 17:03:08,579 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-11-07 17:03:08,579 [INFO] 8901 - ('last question', " I understand that you don't want to talk to me right now, but it's important that you do. You're not doing yourself any favors by not showing up for your appointments or other obligations.")
+2022-11-07 17:03:08,579 [INFO] 8901 - ('q_target', 3.771106785407, 'q_predict', 1.49021711435)
+2022-11-07 17:03:08,580 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.703971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.718306
+5  0.0  1.000000  1.967896  0.990000  1.000000  1.000000)
+2022-11-07 17:03:08,593 [INFO] 8901 - ***************************************************************************************************
+2022-11-07 17:03:08,593 [INFO] 8901 - ('state in choose action: ', 5)
+2022-11-07 17:03:08,594 [INFO] 8901 - ('Question Action', '2')
+2022-11-07 17:03:08,594 [INFO] 8901 - ('question_mask', [0, 1, 0, 1, 0, 0])
+2022-11-07 17:03:08,594 [INFO] 8901 - ('score in log', [])
+2022-11-07 17:03:08,594 [INFO] 8901 - How's your eating habits? Do you have your meals on time?
+2022-11-07 17:03:08,595 [INFO] 8901 - (" I understand that you don't want to talk to me right now, but it's important that you do. You're not doing yourself any favors by not showing up for your appointments or other obligations.", "How's your eating habits? Do you have your meals on time?")
+2022-11-07 17:03:08,596 [INFO] 8901 -  I understand that you don't want to talk to me right now, but it's important that you do. You're not doing yourself any favors by not showing up for your appointments or other obligations.  How's your eating habits? Do you have your meals on time?
+2022-11-07 17:03:30,347 [INFO] 8901 - ['I have']
+2022-11-07 17:03:30,992 [INFO] 8901 - [['DLA', 'No']]
+2022-11-07 17:03:30,992 [INFO] 8901 - ([['DLA', 'No']], ['I have'])
+2022-11-07 17:03:30,992 [INFO] 8901 - check
+2022-11-07 17:03:30,992 [INFO] 8901 - 3
+2022-11-07 17:03:30,992 [INFO] 8901 - 1 + There is direct yes/no/stop to the question
+2022-11-07 17:03:30,992 [INFO] 8901 - 2
+2022-11-07 17:03:30,992 [INFO] 8901 - If score > 1 for direct yes/no/stop
+2022-11-07 17:03:31,223 [INFO] 8901 -  You're not eating regularly.
+2022-11-07 17:03:31,564 [INFO] 8901 -  can you tell me more about that?
+2022-11-07 17:03:31,567 [INFO] 8901 - It seems that  You're not eating regularly.  can you tell me more about that?
+2022-11-07 17:03:31,570 [INFO] 8901 - 4

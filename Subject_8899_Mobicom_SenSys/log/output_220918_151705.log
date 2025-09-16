@@ -1,0 +1,42 @@
+2022-09-18 15:17:05,393 [INFO] 8901 - question_lib_v3_8901.json
+2022-09-18 15:17:06,433 [INFO] 8901 -  I understand that you are worried about covid-19. I would advise you to stay informed but to also take some time for yourself. Relax and take a break from the news. Talk to friends and family members about your concerns. And if you feel like you are struggling, please reach out for help.
+2022-09-18 15:17:07,098 [INFO] 8901 - ('state in choose action: ', 0)
+2022-09-18 15:17:07,102 [INFO] 8901 - ('ITEM A', '5')
+2022-09-18 15:17:07,102 [INFO] 8901 - ('Item number: ', 5)
+2022-09-18 15:17:07,102 [INFO] 8901 - ***************************************************************************************************
+2022-09-18 15:17:07,102 [INFO] 8901 - ('state in choose action: ', 0)
+2022-09-18 15:17:07,103 [INFO] 8901 - ('Question Action', '4')
+2022-09-18 15:17:07,103 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-09-18 15:17:07,103 [INFO] 8901 - ('score in log', [])
+2022-09-18 15:17:07,103 [INFO] 8901 - Have you taken days off recently?
+2022-09-18 15:17:07,103 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-09-18 15:17:07,104 [INFO] 8901 -    Have you taken days off recently?
+2022-09-18 15:21:35,285 [INFO] 8901 - [' Yes, I told days off, I feel depressed recently', '']
+2022-09-18 15:21:36,002 [INFO] 8901 - [['DLA', 'Yes']]
+2022-09-18 15:21:36,002 [INFO] 8901 - ([['DLA', 'Yes']], ['Yes, I told days off, I feel depressed recently', ''])
+2022-09-18 15:21:36,002 [INFO] 8901 - check
+2022-09-18 15:21:36,002 [INFO] 8901 - 3
+2022-09-18 15:21:36,002 [INFO] 8901 - 1 + There is direct yes/no/stop to the question
+2022-09-18 15:21:36,002 [INFO] 8901 - 2
+2022-09-18 15:21:36,002 [INFO] 8901 - ('Evaluate DLA: ', ['DLA', 'Yes'])
+2022-09-18 15:21:36,002 [INFO] 8901 -  
+2022-09-18 15:21:36,002 [INFO] 8901 - ('DLA_result:', [['DLA', 'Yes']])
+2022-09-18 15:21:36,002 [INFO] 8901 - ('valid:', 1)
+2022-09-18 15:21:36,002 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-09-18 15:21:36,002 [INFO] 8901 - ('last question', ' ')
+2022-09-18 15:21:36,003 [INFO] 8901 - ('q_target', 1.3411954029150002, 'q_predict', 3.9665015107885)
+2022-09-18 15:21:36,003 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.703971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.490217
+5  0.0  1.000000  1.967896  0.990000  1.000000  1.000000)
+2022-09-18 15:21:36,015 [INFO] 8901 - ***************************************************************************************************
+2022-09-18 15:21:36,015 [INFO] 8901 - ('state in choose action: ', 4)
+2022-09-18 15:21:36,016 [INFO] 8901 - ('Question Action', '5')
+2022-09-18 15:21:36,016 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 0])
+2022-09-18 15:21:36,016 [INFO] 8901 - ('score in log', [])
+2022-09-18 15:21:36,016 [INFO] 8901 - Are you showing up to your plans?
+2022-09-18 15:21:36,016 [INFO] 8901 - (' ', 'Are you showing up to your plans?')
+2022-09-18 15:21:36,018 [INFO] 8901 -    Are you showing up to your plans?

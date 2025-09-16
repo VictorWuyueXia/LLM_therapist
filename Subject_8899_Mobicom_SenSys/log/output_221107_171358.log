@@ -1,0 +1,68 @@
+2022-11-07 17:13:58,103 [INFO] 8901 - question_lib_v3_8901.json
+2022-11-07 17:13:59,014 [INFO] 8901 - 
+
+I understand that you are worried about covid-19. But it's important to stay healthy and positive. You can talk to your friends and family members about your concerns. Or you can reach out to a therapist. I am always here to support you.
+2022-11-07 17:13:59,651 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-07 17:13:59,654 [INFO] 8901 - ('ITEM A', '5')
+2022-11-07 17:13:59,655 [INFO] 8901 - ('Item number: ', 5)
+2022-11-07 17:13:59,655 [INFO] 8901 - ***************************************************************************************************
+2022-11-07 17:13:59,655 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-07 17:13:59,656 [INFO] 8901 - ('Question Action', '4')
+2022-11-07 17:13:59,656 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-11-07 17:13:59,656 [INFO] 8901 - ('score in log', [])
+2022-11-07 17:13:59,656 [INFO] 8901 - Have you taken days off recently?
+2022-11-07 17:13:59,656 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-11-07 17:13:59,657 [INFO] 8901 -    Have you taken days off recently?
+2022-11-07 17:14:42,710 [INFO] 8901 - ['No']
+2022-11-07 17:14:43,335 [INFO] 8901 - [['DLA', 'No']]
+2022-11-07 17:14:43,335 [INFO] 8901 - ([['DLA', 'No']], ['No'])
+2022-11-07 17:14:43,335 [INFO] 8901 - check
+2022-11-07 17:14:43,335 [INFO] 8901 - 3
+2022-11-07 17:14:43,335 [INFO] 8901 - 1 + There is direct yes/no/stop to the question
+2022-11-07 17:14:43,335 [INFO] 8901 - 2
+2022-11-07 17:14:43,335 [INFO] 8901 - If score > 1 for direct yes/no/stop
+2022-11-07 17:14:43,670 [INFO] 8901 -  You haven't taken days off recently.
+2022-11-07 17:14:44,073 [INFO] 8901 -  can you tell me more about it?
+2022-11-07 17:14:44,076 [INFO] 8901 - It seems that  You haven't taken days off recently.  can you tell me more about it?
+2022-11-07 17:14:44,078 [INFO] 8901 - 4
+2022-11-07 17:15:07,734 [INFO] 8901 - ('5', 'start')
+2022-11-07 17:15:08,265 [INFO] 8901 -  I appreciate your concern, but I am feeling fine. I will take a day off when I feel like I need it.
+2022-11-07 17:15:08,266 [INFO] 8901 - ('therapist_resp in evaluate Y/N', ' I appreciate your concern, but I am feeling fine. I will take a day off when I feel like I need it.')
+2022-11-07 17:15:08,266 [INFO] 8901 - 6
+2022-11-07 17:15:08,266 [INFO] 8901 - ('Evaluate DLA: ', ['DLA', 'No'])
+2022-11-07 17:15:08,266 [INFO] 8901 -  I appreciate your concern, but I am feeling fine. I will take a day off when I feel like I need it.
+2022-11-07 17:15:08,266 [INFO] 8901 - ('DLA_result:', [['DLA', 'No']])
+2022-11-07 17:15:08,266 [INFO] 8901 - ('valid:', 1)
+2022-11-07 17:15:08,266 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-11-07 17:15:08,266 [INFO] 8901 - ('last question', ' I appreciate your concern, but I am feeling fine. I will take a day off when I feel like I need it.')
+2022-11-07 17:15:08,267 [INFO] 8901 - ('q_target', 3.341195402915, 'q_predict', 3.9665015107885)
+2022-11-07 17:15:08,267 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.903971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.490217
+5  0.0  1.000000  1.967896  0.990000  1.000000  1.000000)
+2022-11-07 17:15:08,279 [INFO] 8901 - ***************************************************************************************************
+2022-11-07 17:15:08,280 [INFO] 8901 - ('state in choose action: ', 4)
+2022-11-07 17:15:08,281 [INFO] 8901 - ('Question Action', '5')
+2022-11-07 17:15:08,281 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 0])
+2022-11-07 17:15:08,281 [INFO] 8901 - ('score in log', [])
+2022-11-07 17:15:08,281 [INFO] 8901 - Are you showing up to your plans?
+2022-11-07 17:15:08,281 [INFO] 8901 - (' I appreciate your concern, but I am feeling fine. I will take a day off when I feel like I need it.', 'Are you showing up to your plans?')
+2022-11-07 17:15:08,282 [INFO] 8901 -  I appreciate your concern, but I am feeling fine. I will take a day off when I feel like I need it.  Are you showing up to your plans?
+2022-11-07 17:15:08,323 [INFO] 8901 - ['start']
+2022-11-07 17:15:08,916 [INFO] 8901 - 1
+2022-11-07 17:15:08,916 [INFO] 8901 - ['idslen)href == *outpidhref) { re']
+2022-11-07 17:15:08,916 [INFO] 8901 - [['NA', 99]]
+2022-11-07 17:15:08,916 [INFO] 8901 - ([['NA', 99]], ['start'])
+2022-11-07 17:15:08,916 [INFO] 8901 - check
+2022-11-07 17:15:08,916 [INFO] 8901 - 3
+2022-11-07 17:15:08,916 [INFO] 8901 - ('Evaluate DLA: ', ['NA', 99])
+2022-11-07 17:15:08,917 [INFO] 8901 - ('label', 'NA')
+2022-11-07 17:15:08,917 [INFO] 8901 - ('last_question in evaluate_result: ', '')
+2022-11-07 17:15:08,917 [INFO] 8901 - 
+2022-11-07 17:15:08,917 [INFO] 8901 - ('DLA_result:', [['NA', 99]])
+2022-11-07 17:15:08,917 [INFO] 8901 - ('valid:', 0)
+2022-11-07 17:15:08,917 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-11-07 17:15:08,920 [INFO] 8901 -  I appreciate your concern, but I am feeling fine. I will take a day off when I feel like I need it.  Are you showing up to your plans?

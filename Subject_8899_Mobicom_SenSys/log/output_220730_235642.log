@@ -1,0 +1,13 @@
+2022-07-30 23:56:42,382 [INFO] 8901 - question_lib_v3_8901.json
+2022-07-30 23:56:43,257 [INFO] 8901 -  I understand that you are worried about covid-19. I would advise you to stay informed but also to take some time for yourself. You can talk to a friend or family member about your concerns. Or you can reach out to a therapist.
+2022-07-30 23:56:43,910 [INFO] 8901 - ('state in choose action: ', 0)
+2022-07-30 23:56:43,915 [INFO] 8901 - ('ITEM A', '5')
+2022-07-30 23:56:43,915 [INFO] 8901 - ('Item number: ', 5)
+2022-07-30 23:56:43,915 [INFO] 8901 - ***************************************************************************************************
+2022-07-30 23:56:43,915 [INFO] 8901 - ('state in choose action: ', 0)
+2022-07-30 23:56:43,916 [INFO] 8901 - ('Question Action', '4')
+2022-07-30 23:56:43,916 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-07-30 23:56:43,916 [INFO] 8901 - ('score in log', [])
+2022-07-30 23:56:43,916 [INFO] 8901 - Have you taken days off recently?
+2022-07-30 23:56:43,916 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-07-30 23:56:43,917 [INFO] 8901 -    Have you taken days off recently?

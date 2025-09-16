@@ -1,0 +1,39 @@
+Item Label,Score,Notes
+DLA_1_weight,[0],"[['original question:  Have you gained or lost a lot of weight recently?', 'original_resp: No, I have not']]"
+DLA_1_mood,[0],"[[""original_resp: I'm feeling alright""]]"
+DLA_1_medication,[0],"[['original question: Have you been taking medication according to your prescriptions?', ""original_resp: Yes, I've been taking my medications""]]"
+DLA_1_care,[0],"[['original question: Have you been seeing your medical providers as needed?', 'original_resp: Yes']]"
+DLA_2_house,[0],"[[""original_resp: I'm maintaining it well""]]"
+DLA_3_talk,[0],"[['original question: Are you talking to other people in your life?', 'original_resp: Yes, I am talking to my friends']]"
+DLA_3_emo,[0],"[['original question: Have you expressed feelings to others?', ""original_resp: Yes, I've expressed feelings""]]"
+DLA_4_safe,[0],"[['original question: Have you considered your safety in decision making?', 'original_resp: Yes, I was considering my safety first']]"
+DLA_4_risk,[0],[['original_resp: Do I have any concern?']]
+DLA_5_sleep,[0],[['original_resp: Are getting enough sleep']]
+DLA_5_eat,[0],"[[""original question: How's your eating habits? Do you have your meals on time?"", 'original_resp: Yes, I have my meals on time']]"
+DLA_5_work,"[0, 0]","[[""original_resp: I'm showing up for school""], ['original_resp: I go work']]"
+DLA_5_work_dayoff,[2],"[['original question: Have you taken days off recently?', ""original_resp: No, I haven't"", 'followup_resp:  I have a lot of work to do recently.', ""therapist_resp: \n\nI understand that you feel like you need to work all the time. But it's important to take a break and relax. You can talk to a friend or family member. Or you can reach out to a therapist. And I am always here to support you.""]]"
+DLA_5_showup,[0],"[['original question: Are you showing up to your plans?', 'original_resp: Yes, I am']]"
+DLA_6_finance,[0],"[['original question: Any concern with recent spending habits?', ""original_resp: No, I don't""]]"
+DLA_7_nutrition,[0],"[['original question: Are you having healthy meals?', ""original_resp: Yes, I'm having a lot of salad""]]"
+DLA_8_problem,[0],"[['original question: Are you able to solve problems by yourself?', 'original_resp: Yes, I can solve my own problems']]"
+DLA_9_support,[0],"[['original question: Do you feel supported by your family?', 'original_resp: Yes, I feel sort it by my family']]"
+DLA_9_family,[0],[['original_resp: I have a relationship with my family']]
+DLA_10_drug,[1],[['original_resp: What was the frequency of I smoke weed? Sometimes']]
+DLA_10_ciga,[0],"[['original question: Do you smoke cigarettes or vape? And how frequent?', ""original_resp: no, don't""]]"
+DLA_10_alcohol,[2],"[['original question: Do you often drink alone?', 'original_resp: Yes, I will', 'followup_resp:  Ayak alcohol.', ""therapist_resp: \n\nThank you for bringing this to my attention. I didn't realize that I was drinking alone and I want to work on that. I appreciate your concern.""]]"
+DLA_11_hobbies,[0],[['original_resp: Exercise a lot']]
+DLA_11_creativity,"[0, 2]","[['original_resp: Honey Singh created'], [""original_resp: Oh, I don't do anything creative"", ""followup_resp:  I just don't like creative things."", ""therapist_resp:  I understand that you may not like creative things. But it's important to do something that you like and make you feel good. You can talk to your friends or family members about this.""]]"
+DLA_12_community,[0],"[['original question: Have you been out in your neighborhood?', 'original_resp: Yes, I have']]"
+DLA_13_support,[2],"[['original question:  Who are your close supporters, excluding family members?', 'original_resp: I have no friends', ""followup_resp:  I don't like to talk to people."", ""therapist_resp:  You mentioned that you don't have close support other than your family. It's important to have close friends to talk to. You can talk to them about anything that's going on in your life. You can also reach out to a therapist to help you out.""]]"
+DLA_13_social,[],[]
+DLA_14_sex,[0],"[['original question:  Are you sexually active?', 'original_resp: Yes']]"
+DLA_14_comfortable,[1],"[[""original_resp: I hope we'd sometimes""]]"
+DLA_14_protection,[0],"[['original question: Do you try to avoid risky sexual behaviours?', 'original_resp: Yes, I like those']]"
+DLA_15_productivity,[0],"[['original question: Do you feel productive?', 'original_resp: Yes, I feel productive']]"
+DLA_15_motivation,[],[]
+DLA_16_coping,[0],"[['original question: Do you have coping skills to help you calm down?', 'original_resp: Yes, I watch TV shows to calm down']]"
+DLA_17_sib,[0],"[['original question: Do you have self-harming behaviours?', ""original_resp: No, I don't""]]"
+DLA_17_arrest,[0],"[['original question: Have you been arrested recently?', ""original_resp: No, I haven't""]]"
+DLA_17_legal,[0],"[['original question: Are you involved in any legal issues recently?', 'original_resp: No, I have no legal issues']]"
+DLA_18_hygiene,[0],[['original_resp: I have good personal hygiene']]
+DLA_21_sports,[0],[['original_resp: Exercise a lot']]

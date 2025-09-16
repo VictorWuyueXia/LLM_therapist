@@ -1,0 +1,119 @@
+2022-11-08 17:17:26,599 [INFO] 8901 - question_lib_v3_8901.json
+2022-11-08 17:17:27,586 [INFO] 8901 -  I understand that you are worried about covid-19. I would be too. But you need to take care of yourself and stay healthy. You can talk to a friend or family member about your concerns. Or you can reach out to a therapist.
+2022-11-08 17:17:28,384 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-08 17:17:28,387 [INFO] 8901 - ('ITEM A', '5')
+2022-11-08 17:17:28,387 [INFO] 8901 - ('Item number: ', 5)
+2022-11-08 17:17:28,387 [INFO] 8901 - ***************************************************************************************************
+2022-11-08 17:17:28,387 [INFO] 8901 - ('state in choose action: ', 0)
+2022-11-08 17:17:28,388 [INFO] 8901 - ('Question Action', '4')
+2022-11-08 17:17:28,388 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 1])
+2022-11-08 17:17:28,388 [INFO] 8901 - ('score in log', [])
+2022-11-08 17:17:28,389 [INFO] 8901 - Have you taken days off recently?
+2022-11-08 17:17:28,389 [INFO] 8901 - (' ', 'Have you taken days off recently?')
+2022-11-08 17:17:28,390 [INFO] 8901 -    Have you taken days off recently?
+2022-11-08 17:18:30,143 [INFO] 8901 - ['I have']
+2022-11-08 17:18:30,904 [INFO] 8901 - [['DLA', 'Yes']]
+2022-11-08 17:18:30,904 [INFO] 8901 - ([['DLA', 'Yes']], ['I have'])
+2022-11-08 17:18:30,904 [INFO] 8901 - check
+2022-11-08 17:18:30,904 [INFO] 8901 - 3
+2022-11-08 17:18:30,905 [INFO] 8901 - 1 + There is direct yes/no/stop to the question
+2022-11-08 17:18:30,905 [INFO] 8901 - 2
+2022-11-08 17:18:30,905 [INFO] 8901 - ('Evaluate DLA: ', ['DLA', 'Yes'])
+2022-11-08 17:18:30,905 [INFO] 8901 -  
+2022-11-08 17:18:30,905 [INFO] 8901 - ('DLA_result:', [['DLA', 'Yes']])
+2022-11-08 17:18:30,905 [INFO] 8901 - ('valid:', 1)
+2022-11-08 17:18:30,905 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-11-08 17:18:30,905 [INFO] 8901 - ('last question', ' ')
+2022-11-08 17:18:30,906 [INFO] 8901 - ('q_target', 1.3411954029150002, 'q_predict', 3.9665015107885)
+2022-11-08 17:18:30,906 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.703971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.490217
+5  0.0  1.000000  1.967896  0.990000  1.000000  1.000000)
+2022-11-08 17:18:30,919 [INFO] 8901 - ***************************************************************************************************
+2022-11-08 17:18:30,919 [INFO] 8901 - ('state in choose action: ', 4)
+2022-11-08 17:18:30,921 [INFO] 8901 - ('Question Action', '5')
+2022-11-08 17:18:30,921 [INFO] 8901 - ('question_mask', [0, 1, 1, 1, 0, 0])
+2022-11-08 17:18:30,921 [INFO] 8901 - ('score in log', [])
+2022-11-08 17:18:30,921 [INFO] 8901 - Are you showing up to your plans?
+2022-11-08 17:18:30,921 [INFO] 8901 - (' ', 'Are you showing up to your plans?')
+2022-11-08 17:18:30,923 [INFO] 8901 -    Are you showing up to your plans?
+2022-11-08 17:18:35,479 [INFO] 8901 - ['I have']
+2022-11-08 17:18:36,103 [INFO] 8901 - [['DLA', 'Yes']]
+2022-11-08 17:18:36,103 [INFO] 8901 - ([['DLA', 'Yes']], ['I have'])
+2022-11-08 17:18:36,103 [INFO] 8901 - check
+2022-11-08 17:18:36,103 [INFO] 8901 - 3
+2022-11-08 17:18:36,103 [INFO] 8901 - 1 + There is direct yes/no/stop to the question
+2022-11-08 17:18:36,103 [INFO] 8901 - 2
+2022-11-08 17:18:36,103 [INFO] 8901 - ('Evaluate DLA: ', ['DLA', 'Yes'])
+2022-11-08 17:18:36,103 [INFO] 8901 -  
+2022-11-08 17:18:36,103 [INFO] 8901 - ('DLA_result:', [['DLA', 'Yes']])
+2022-11-08 17:18:36,103 [INFO] 8901 - ('valid:', 1)
+2022-11-08 17:18:36,103 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-11-08 17:18:36,104 [INFO] 8901 - ('last question', ' ')
+2022-11-08 17:18:36,104 [INFO] 8901 - ('q_target', 1.771106785407, 'q_predict', 1.49021711435)
+2022-11-08 17:18:36,104 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.703971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.518306
+5  0.0  1.000000  1.967896  0.990000  1.000000  1.000000)
+2022-11-08 17:18:36,117 [INFO] 8901 - ***************************************************************************************************
+2022-11-08 17:18:36,117 [INFO] 8901 - ('state in choose action: ', 5)
+2022-11-08 17:18:36,118 [INFO] 8901 - ('Question Action', '2')
+2022-11-08 17:18:36,118 [INFO] 8901 - ('question_mask', [0, 1, 0, 1, 0, 0])
+2022-11-08 17:18:36,118 [INFO] 8901 - ('score in log', [])
+2022-11-08 17:18:36,118 [INFO] 8901 - How's your eating habits? Do you have your meals on time?
+2022-11-08 17:18:36,119 [INFO] 8901 - (' ', "How's your eating habits? Do you have your meals on time?")
+2022-11-08 17:18:36,120 [INFO] 8901 -    How's your eating habits? Do you have your meals on time?
+2022-11-08 17:18:43,237 [INFO] 8901 - [" I don't have my meals on time", '']
+2022-11-08 17:18:43,860 [INFO] 8901 - [['DLA_5_eat', 2]]
+2022-11-08 17:18:43,860 [INFO] 8901 - ([['DLA_5_eat', 2]], ["I don't have my meals on time", ''])
+2022-11-08 17:18:43,860 [INFO] 8901 - check
+2022-11-08 17:18:43,860 [INFO] 8901 - 3
+2022-11-08 17:18:43,860 [INFO] 8901 - ('Evaluate DLA: ', ['DLA_5_eat', 2])
+2022-11-08 17:18:43,860 [INFO] 8901 - ('label', 'DLA_5_eat')
+2022-11-08 17:18:43,860 [INFO] 8901 - 1
+2022-11-08 17:18:43,860 [INFO] 8901 - ('Score: ', 2)
+2022-11-08 17:18:44,167 [INFO] 8901 -  You don't have your meals on time.
+2022-11-08 17:18:44,169 [INFO] 8901 - You mentioned that  you don't have your meals on time. Can you tell me more?
+2022-11-08 17:18:44,172 [INFO] 8901 - 7
+2022-11-08 17:18:52,697 [INFO] 8901 - ('8', 'Too stressed out')
+2022-11-08 17:18:53,799 [INFO] 8901 - 
+
+I'm sorry to hear that you're feeling so stressed out. It's important to make sure you're taking care of yourself, and that includes eating regular meals. Maybe try to set a schedule for yourself and make sure you're following it. If that doesn't work, you might want to talk to a therapist about your stress.
+2022-11-08 17:18:53,799 [INFO] 8901 - ('therapist_resp in evaluate', "\n\nI'm sorry to hear that you're feeling so stressed out. It's important to make sure you're taking care of yourself, and that includes eating regular meals. Maybe try to set a schedule for yourself and make sure you're following it. If that doesn't work, you might want to talk to a therapist about your stress.")
+2022-11-08 17:18:53,799 [INFO] 8901 - 9
+2022-11-08 17:18:53,799 [INFO] 8901 - check1
+2022-11-08 17:18:53,799 [INFO] 8901 - 5
+2022-11-08 17:18:53,799 [INFO] 8901 - 5
+2022-11-08 17:18:53,799 [INFO] 8901 - ('item_number, question_number, valid:', '5', 2, 1)
+2022-11-08 17:18:53,799 [INFO] 8901 - ('last_question in evaluate_result: ', "\n\nI'm sorry to hear that you're feeling so stressed out. It's important to make sure you're taking care of yourself, and that includes eating regular meals. Maybe try to set a schedule for yourself and make sure you're following it. If that doesn't work, you might want to talk to a therapist about your stress.")
+2022-11-08 17:18:53,799 [INFO] 8901 - 
+
+I'm sorry to hear that you're feeling so stressed out. It's important to make sure you're taking care of yourself, and that includes eating regular meals. Maybe try to set a schedule for yourself and make sure you're following it. If that doesn't work, you might want to talk to a therapist about your stress.
+2022-11-08 17:18:53,799 [INFO] 8901 - ('DLA_result:', [['DLA_5_eat', 2]])
+2022-11-08 17:18:53,799 [INFO] 8901 - ('valid:', 1)
+2022-11-08 17:18:53,799 [INFO] 8901 - ('DLA_terminate:', 0)
+2022-11-08 17:18:53,799 [INFO] 8901 - ('last question', "\n\nI'm sorry to hear that you're feeling so stressed out. It's important to make sure you're taking care of yourself, and that includes eating regular meals. Maybe try to set a schedule for yourself and make sure you're following it. If that doesn't work, you might want to talk to a therapist about your stress.")
+2022-11-08 17:18:53,800 [INFO] 8901 - ('q_target', 4.22900121188, 'q_predict', 1.96789642823)
+2022-11-08 17:18:53,801 [INFO] 8901 - ('new_question_q_table after update',      0         1         2         3         4         5
+0  0.0  1.000000  1.000000  1.000000  3.703971  1.000000
+1  0.0  1.000000  1.000000  0.990000  1.000000  1.900000
+2  0.0  1.000000  1.000000  2.476668  1.000000  0.990000
+3  0.0  6.029604  1.000000  1.000000  1.000000  0.998100
+4  0.0  0.990000  0.987390  0.900000  1.000000  1.518306
+5  0.0  1.000000  2.194007  0.990000  1.000000  1.000000)
+2022-11-08 17:18:53,816 [INFO] 8901 - ***************************************************************************************************
+2022-11-08 17:18:53,816 [INFO] 8901 - ('state in choose action: ', 2)
+2022-11-08 17:18:53,818 [INFO] 8901 - ('Question Action', '3')
+2022-11-08 17:18:53,818 [INFO] 8901 - ('question_mask', [0, 1, 0, 0, 0, 0])
+2022-11-08 17:18:53,818 [INFO] 8901 - ('score in log', [])
+2022-11-08 17:18:53,818 [INFO] 8901 - Are you going to work or school?
+2022-11-08 17:18:53,818 [INFO] 8901 - ("\n\nI'm sorry to hear that you're feeling so stressed out. It's important to make sure you're taking care of yourself, and that includes eating regular meals. Maybe try to set a schedule for yourself and make sure you're following it. If that doesn't work, you might want to talk to a therapist about your stress.", 'Are you going to work or school?')
+2022-11-08 17:18:53,819 [INFO] 8901 - 
+
+I'm sorry to hear that you're feeling so stressed out. It's important to make sure you're taking care of yourself, and that includes eating regular meals. Maybe try to set a schedule for yourself and make sure you're following it. If that doesn't work, you might want to talk to a therapist about your stress.  Are you going to work or school?
