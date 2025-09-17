@@ -1,0 +1,7 @@
+2025-09-17 08:00:53,405 [INFO] RLSession - ('Item number: ', 1)
+2025-09-17 08:00:53,406 [INFO] RLSession - ***************************************************************************************************
+2025-09-17 08:00:53,418 [INFO] RLSession - ('Question Action', '4')
+2025-09-17 08:00:53,418 [INFO] RLSession - ('question_mask', [0, 1, 1, 1, 0])
+2025-09-17 08:00:53,418 [INFO] RLSession - ('score in log', [])
+2025-09-17 08:00:53,418 [INFO] RLSession - Have you been seeing your medical providers as needed?
+2025-09-17 08:00:53,418 [INFO] RLSession - (' ', 'Have you been seeing your medical providers as needed?')

@@ -84,6 +84,7 @@ import json
 
 import csv
 
+from scripts.response_analyzer import classify_dimension_and_score
 
 np.random.seed(2)  # reproducible
 
@@ -475,97 +476,163 @@ def get_env_feedback(S, A, openai_res, DLA_terminate, item_mask):
 
 # In[18]:
 
-
 def get_openai_resp(user_input):
+    """
+    # Minimal invasive replacement:
+    # - Call scripts.response_analyzer.classify_dimension_and_score(user_input)
+    # - Compatible with original return semantics:
+    #     1) Direct answer branch: ('DLA', 'Yes'/'No'/'Stop'/'Question')
+    #     2) Dimension + score branch: ('DLA_1_weight', 0/1/2)
+    #     3) Unable to parse: ('NA', 99)
+    # Notes:
+    # - ResponseAnalyzer often returns results like '1_weight, 2' or 'Yes, 0'
+    # - We need to normalize '1_weight' to 'DLA_1_weight'
+    # - Map 'Maybe' to 'Question' (to avoid errors if question_lib lacks a 'Maybe' key)
+    """
+    import re
 
-    openai.api_key = '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'
-    res = openai.Completion.create(
-     # model='davinci:ft-columbia-university-2022-02-28-15-50-17',
-     model = openai_model,
-        #'davinci:ft-personal-2022-03-20-19-44-33',
-     prompt = user_input+"->",
-     max_tokens = 17,)
+    # Do direct answer fallback (keep original logic)
+    lower_tokens = user_input.replace(".", " ").replace(",", " ").replace("?", " ").split()
+    lower_tokens = [t.lower() for t in lower_tokens[:5]]
+    if "stop" in lower_tokens:
+        return "DLA", "Stop"
+    if "yes" in lower_tokens:
+        return "DLA", "Yes"
+    if "no" in lower_tokens:
+        return "DLA", "No"
 
-    cmd = res['choices'][0]['text']
-
-#     cmd = get_openai_results(user_input)
-
-#     logger.info(cmd)
-#     logger.info(type(cmd))
-    cmd = cmd.replace("->","")
-    cmd = cmd.replace(";",",")
-    cmd = cmd.replace(".",",")
-    
-    response = cmd.split(",")[:2]
     try:
-        category = response[0].replace(" ","")
-        score = 99
-        if category == "DLA":
-            if "No" in response[1]:
-                score = "No"
-            elif "Yes" in response[1]:
-                score = "Yes"
-            elif "Stop" in response[1]:
-                score = "Stop"
-            elif "Question" in response[1]:
-                score = "Question"
-            elif "Maybe" in response[1]:
-                score = 1
-        else:
-            try:
-                if float(response[1]) >=2:
-                    score = 2        
-                elif float(response[1]) < 1:
-                    score = 0
-                else:
-                    score = 1   
-            except:
-                pass
+        raw = classify_dimension_and_score(user_input)
+        text = str(raw).strip()
+    except Exception:
+        return "NA", 99
+
+    # Extract first line to avoid model extra explanation
+    first = text.splitlines()[0].strip()
+
+    # 1) Direct answer category (Yes/No/Stop/Question/Maybe)
+    direct_match = re.match(r"^\s*(Yes|No|Stop|Question|Maybe)\s*,?\s*(\d+)?\s*$", first, flags=re.IGNORECASE)
+    if direct_match:
+        token = direct_match.group(1).strip().lower()
+        # Map Maybe to Question to trigger re-ask flow, avoid errors if question_lib lacks a 'Maybe' key
+        if token == "maybe":
+            return "DLA", "Question"
+        if token in ("yes", "no", "stop", "question"):
+            return "DLA", token.capitalize()
+
+    # 2) Dimension + score, e.g., '1_weight, 2' or 'DLA_1_weight, 2'
+    dim_score = re.match(r"^\s*([A-Za-z0-9_]+)\s*,\s*([0-2])\s*$", first)
+    if dim_score:
+        dim = dim_score.group(1).strip()
+        score = int(dim_score.group(2))
+
+        # Normalize dimension name to question_lib format: DLA_1_weight
+        # 允许输入是 '1_weight' 或 'DLA_1_weight'
+        if re.match(r"^\d+_[A-Za-z_]+$", dim):
+            dim = "DLA_" + dim
+        elif not dim.startswith("DLA_"):
+            # Unknown dimension name, mark as NA
+            return "NA", 99
+
+        return dim, score
+
+    # 3) Other like 'Other, 0', mark as NA/99 (keep original logic)
+    other_match = re.match(r"^\s*(Other)\s*,\s*(\d+)\s*$", first, flags=re.IGNORECASE)
+    if other_match:
+        return "NA", 99
+
+    # Final fallback
+    return "NA", 99
+# def get_openai_resp(user_input):
+
+#     openai.api_key = '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'
+#     res = openai.Completion.create(
+#      # model='davinci:ft-columbia-university-2022-02-28-15-50-17',
+#      model = openai_model,
+#         #'davinci:ft-personal-2022-03-20-19-44-33',
+#      prompt = user_input+"->",
+#      max_tokens = 17,)
+
+#     cmd = res['choices'][0]['text']
+
+# #     cmd = get_openai_results(user_input)
+
+# #     logger.info(cmd)
+# #     logger.info(type(cmd))
+#     cmd = cmd.replace("->","")
+#     cmd = cmd.replace(";",",")
+#     cmd = cmd.replace(".",",")
+    
+#     response = cmd.split(",")[:2]
+#     try:
+#         category = response[0].replace(" ","")
+#         score = 99
+#         if category == "DLA":
+#             if "No" in response[1]:
+#                 score = "No"
+#             elif "Yes" in response[1]:
+#                 score = "Yes"
+#             elif "Stop" in response[1]:
+#                 score = "Stop"
+#             elif "Question" in response[1]:
+#                 score = "Question"
+#             elif "Maybe" in response[1]:
+#                 score = 1
+#         else:
+#             try:
+#                 if float(response[1]) >=2:
+#                     score = 2        
+#                 elif float(response[1]) < 1:
+#                     score = 0
+#                 else:
+#                     score = 1   
+#             except:
+#                 pass
         
-    except:
-        pass
-#     logger.info(score)
-    if score == 99:
-        logger.info("1")
-        try:
-            all_cmd = cmd.split(",")
-            logger.info(all_cmd)
-            if "DLA" in all_cmd:
-                category = "DLA"
-                logger.info(("category",category))
-                if "Stop" in all_cmd:
-                    score ="Stop"
-                elif "Yes" in all_cmd:
-                    score ="Yes"
-                elif "No" in all_cmd:
-                    score = "No"
-                else:
-                    score = 99
-            else:
-                category = "NA"
-                score = 99
-        except:
-            pass
+#     except:
+#         pass
+# #     logger.info(score)
+#     if score == 99:
+#         logger.info("1")
+#         try:
+#             all_cmd = cmd.split(",")
+#             logger.info(all_cmd)
+#             if "DLA" in all_cmd:
+#                 category = "DLA"
+#                 logger.info(("category",category))
+#                 if "Stop" in all_cmd:
+#                     score ="Stop"
+#                 elif "Yes" in all_cmd:
+#                     score ="Yes"
+#                 elif "No" in all_cmd:
+#                     score = "No"
+#                 else:
+#                     score = 99
+#             else:
+#                 category = "NA"
+#                 score = 99
+#         except:
+#             pass
         
-    ### Check if there is directly yes or no in the user_input sentence
-    user_correction = user_input.replace(".", " ")
-    user_correction = user_correction.replace(",", " ")
-    user_correction = user_correction.replace("?", " ")
-    user_correction = user_correction.split(" ")
-    user_correction =[ i.lower() for i in user_correction]
-    if "yes" in user_correction:
-        category = "DLA"
-        score ="Yes"
-    if "no" in user_correction:
-        category = "DLA"
-        score ="No"
+#     ### Check if there is directly yes or no in the user_input sentence
+#     user_correction = user_input.replace(".", " ")
+#     user_correction = user_correction.replace(",", " ")
+#     user_correction = user_correction.replace("?", " ")
+#     user_correction = user_correction.split(" ")
+#     user_correction =[ i.lower() for i in user_correction]
+#     if "yes" in user_correction:
+#         category = "DLA"
+#         score ="Yes"
+#     if "no" in user_correction:
+#         category = "DLA"
+#         score ="No"
         
-    if "stop" in user_correction[0]:
-        category = "DLA"
-        score ="Stop"
+#     if "stop" in user_correction[0]:
+#         category = "DLA"
+#         score ="Stop"
 
     
-    return category, score
+#     return category, score
 
 
 # In[19]:

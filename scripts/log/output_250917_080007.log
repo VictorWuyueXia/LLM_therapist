@@ -1,0 +1,7 @@
+2025-09-17 08:00:07,351 [INFO] RLSession - ('Item number: ', 5)
+2025-09-17 08:00:07,351 [INFO] RLSession - ***************************************************************************************************
+2025-09-17 08:00:07,364 [INFO] RLSession - ('Question Action', '4')
+2025-09-17 08:00:07,364 [INFO] RLSession - ('question_mask', [0, 1, 1, 1, 0, 1])
+2025-09-17 08:00:07,364 [INFO] RLSession - ('score in log', [])
+2025-09-17 08:00:07,365 [INFO] RLSession - Have you taken days off recently?
+2025-09-17 08:00:07,365 [INFO] RLSession - (' ', 'Have you taken days off recently?')
