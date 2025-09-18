@@ -2,7 +2,8 @@
 
 import os
 import logging
-import openai
+from openai import OpenAI
+from scripts.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:
@@ -11,7 +12,10 @@ if not logger.handlers:
     logger.addHandler(_ch)
 
 # Set OpenAI API key from environment variable for security (do not hardcode)
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+_api_key = os.environ.get("OPENAI_API_KEY")
+if not _api_key:
+    raise RuntimeError("OPENAI_API_KEY is not set in environment")
+client = OpenAI(api_key=_api_key)
 
 # The following functions generate prompts and call OpenAI's API to generate various types of text transformations.
 # Each function is commented to explain its purpose and logic.
@@ -38,15 +42,17 @@ def generate_synonymous_sentences(question_text):
     """
     Use OpenAI API to generate a synonymous sentence for the given question_text.
     """
-    # Use environment-provided API key only
     user_input = question_text
-    response = openai.Completion.create(
-        engine="text-davinci-001",
-        prompt=generate_prompt_synonymous_sentences(user_input),
-        temperature=0.8,
-        max_tokens=1000,
+    response = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "You generate synonymous sentences for a given text."},
+            {"role": "user", "content": generate_prompt_synonymous_sentences(user_input)},
+        ],
+        temperature=OPENAI_TEMPERATURE,
+        max_tokens=OPENAI_MAX_TOKENS,
     )
-    results = response.choices[0].text
+    results = response.choices[0].message.content
     logger.debug(response.choices[0].text)
     return results
 
@@ -74,15 +80,17 @@ def generate_therapist_chat(user_input):
     """
     Use OpenAI API to generate a therapist-like response to the user's input.
     """
-    # Use environment-provided API key only
-    response = openai.Completion.create(
-        engine="text-davinci-001",
-        prompt=generate_prompt_therapist(user_input),
-        temperature=0.6,
-        max_tokens=1000,
+    response = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "Chat with people as a therapist."},
+            {"role": "user", "content": generate_prompt_therapist(user_input)},
+        ],
+        temperature=OPENAI_TEMPERATURE,
+        max_tokens=OPENAI_MAX_TOKENS,
     )
-    logger.debug(response.choices[0].text)
-    result = response.choices[0].text
+    logger.debug(response.choices[0].message.content)
+    result = response.choices[0].message.content
     return result
 
 def generate_prompt_change(user_input):
@@ -107,15 +115,17 @@ def generate_change(user_input):
     """
     Use OpenAI API to convert a first-person sentence to a second-person sentence.
     """
-    # Use environment-provided API key only
-    response = openai.Completion.create(
-        engine="text-davinci-001",
-        prompt=generate_prompt_change(user_input),
-        temperature=0.6,
-        max_tokens=1000,
+    response = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "Convert first-person to second-person statements."},
+            {"role": "user", "content": generate_prompt_change(user_input)},
+        ],
+        temperature=OPENAI_TEMPERATURE,
+        max_tokens=OPENAI_MAX_TOKENS,
     )
-    logger.debug(response.choices[0].text)
-    resp = response.choices[0].text
+    logger.debug(response.choices[0].message.content)
+    resp = response.choices[0].message.content
     return resp
 
 def generate_prompt_change_positive(user_input):
@@ -140,15 +150,17 @@ def generate_change_positive(user_input):
     """
     Use OpenAI API to convert a question to a positive declarative sentence.
     """
-    # Use environment-provided API key only
-    response = openai.Completion.create(
-        engine="text-davinci-001",
-        prompt=generate_prompt_change_positive(user_input),
-        temperature=0.6,
-        max_tokens=1000,
+    response = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "Turn a question into a positive declarative sentence."},
+            {"role": "user", "content": generate_prompt_change_positive(user_input)},
+        ],
+        temperature=OPENAI_TEMPERATURE,
+        max_tokens=OPENAI_MAX_TOKENS,
     )
-    logger.debug(response.choices[0].text)
-    resp = response.choices[0].text
+    logger.debug(response.choices[0].message.content)
+    resp = response.choices[0].message.content
     return resp
 
 def generate_prompt_change_negative(user_input):
@@ -173,13 +185,15 @@ def generate_change_negative(user_input):
     """
     Use OpenAI API to convert a question to a negative declarative sentence.
     """
-    # Use environment-provided API key only
-    response = openai.Completion.create(
-        engine="text-davinci-001",
-        prompt=generate_prompt_change_negative(user_input),
-        temperature=0.6,
-        max_tokens=1000,
+    response = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "Turn a question into a negative declarative sentence."},
+            {"role": "user", "content": generate_prompt_change_negative(user_input)},
+        ],
+        temperature=OPENAI_TEMPERATURE,
+        max_tokens=OPENAI_MAX_TOKENS,
     )
-    logger.debug(response.choices[0].text)
-    resp = response.choices[0].text
+    logger.debug(response.choices[0].message.content)
+    resp = response.choices[0].message.content
     return resp

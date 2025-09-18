@@ -1,10 +1,14 @@
 # scripts/response_analyzer.py
 import os
 import logging
-import openai
+from openai import OpenAI
+from scripts.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
 # Environment variable for API key. If not set, subsequent calls will raise an error directly (following the rule of not suppressing errors).
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+_api_key = os.environ.get("OPENAI_API_KEY")
+if not _api_key:
+    raise RuntimeError("OPENAI_API_KEY is not set in environment")
+client = OpenAI(api_key=_api_key)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -112,31 +116,30 @@ Response format:
 REPHRASER: XXXXX
 '''
 
-def _chat_complete(system_content: str, user_content: str, gpt_model: str = "gpt-4"):
-    logger.debug({"model": gpt_model, "user": user_content[:200]})
-    resp = openai.ChatCompletion.create(
-        model=gpt_model,
+def _chat_complete(system_content: str, user_content: str):
+    logger.debug({"model": OPENAI_MODEL, "user": user_content[:200]})
+    resp = client.chat.completions.create(
+        model=OPENAI_MODEL,
         messages=[
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_content},
         ],
-        max_tokens=400,
-        temperature=0.7,
-        top_p=1
+        max_tokens=OPENAI_MAX_TOKENS,
+        temperature=OPENAI_TEMPERATURE,
     )
-    return resp['choices'][0]['message']['content']
+    return resp.choices[0].message.content
 
-def classify_dimension_and_score(user_input: str, gpt_model: str = "gpt-4") -> str:
+def classify_dimension_and_score(user_input: str) -> str:
     """
     # Input: Any user response string
     # Output: Raw model text, expected format such as '1_weight, 2' or 'Yes, 0' (not parsed for now)
     """
-    return _chat_complete(INIT_ASKER_SYSTEM_PROMPT_V2, user_input, gpt_model=gpt_model)
+    return _chat_complete(INIT_ASKER_SYSTEM_PROMPT_V2, user_input)
 
-def reflective_summarizer(original_question: str, user_response: str, gpt_model: str = "gpt-4") -> str:
+def reflective_summarizer(original_question: str, user_response: str) -> str:
     payload = f'{{"Original Question": "{original_question}", "User Response": "{user_response}"}}'
-    return _chat_complete(REFLECTIVE_SUMMARIZER_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(REFLECTIVE_SUMMARIZER_PROMPT, payload)
 
-def rephrase_question(original_question: str, gpt_model: str = "gpt-4") -> str:
+def rephrase_question(original_question: str) -> str:
     payload = f'{{"Original Question": "{original_question}"}}'
-    return _chat_complete(REPHRASER_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(REPHRASER_PROMPT, payload)

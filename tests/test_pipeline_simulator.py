@@ -12,30 +12,29 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from scripts.config import RECORD_CSV
+from scripts.config_loader import RECORD_CSV
 
 HEADER = ["Question", "Question_Lock", "Resp", "Resp_Lock"]
 
-
-def ensure_record_csv() -> None:
+def _atomic_write(df: pd.DataFrame) -> None:
+    time.sleep(0.03)
     folder = os.path.dirname(RECORD_CSV)
-    os.makedirs(folder, exist_ok=True)
-    if not os.path.exists(RECORD_CSV):
-        df = pd.DataFrame([["", 0, "", 1]], columns=HEADER)
-        df.to_csv(RECORD_CSV, index=False)
-    else:
-        df = pd.read_csv(RECORD_CSV)
-        for col in HEADER:
-            if col not in df.columns:
-                df[col] = "" if col in ("Question", "Resp") else 0
-        if len(df) == 0:
-            df = pd.DataFrame([["", 0, "", 1]], columns=HEADER)
-        df = df[HEADER]
-        df.to_csv(RECORD_CSV, index=False)
-
+    if folder and not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+    tmp_path = RECORD_CSV + ".tmp"
+    df.to_csv(tmp_path, columns=HEADER, index=False)
+    os.replace(tmp_path, RECORD_CSV)
+    time.sleep(0.03)
 
 def read_state() -> Tuple[str, int, str, int]:
-    df = pd.read_csv(RECORD_CSV)
+    # Light retry to avoid partial reads
+    for _ in range(5):
+        try:
+            time.sleep(0.03)
+            df = pd.read_csv(RECORD_CSV)
+            break
+        except Exception:
+            time.sleep(0.05)
     row = df.iloc[0]
     return (
         str(row["Question"]),
@@ -44,20 +43,20 @@ def read_state() -> Tuple[str, int, str, int]:
         int(row["Resp_Lock"]),
     )
 
-
 def write_answer(answer_text: str) -> None:
+    time.sleep(0.03)
     df = pd.read_csv(RECORD_CSV)
-    df.loc[0, "Resp"] = answer_text
+    # Normalize answer to avoid triple quotes in CSV
+    normalized = str(answer_text).strip().strip('"')
+    df.loc[0, "Resp"] = normalized
     df.loc[0, "Resp_Lock"] = 0
     df.loc[0, "Question_Lock"] = 0
-    df.to_csv(RECORD_CSV, index=False)
-
+    _atomic_write(df)
 
 def choose_answer(question_text: str, step_idx: int, max_steps: int) -> str:
     if step_idx >= max_steps - 1:
         return "Stop"
-    return random.choice(["Yes", "No"])
-
+    return random.choice(['Yes', 'No'])
 
 def run_app_background() -> subprocess.Popen:
     py = sys.executable
@@ -65,9 +64,8 @@ def run_app_background() -> subprocess.Popen:
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return proc
 
-
 def simulate(rounds: int = 8, poll_interval_s: float = 0.3, overall_timeout_s: float = 180.0) -> int:
-    ensure_record_csv()
+    # App (init_record) is responsible for initializing record.csv
     proc = run_app_background()
     start = time.time()
     step = 0
@@ -77,7 +75,13 @@ def simulate(rounds: int = 8, poll_interval_s: float = 0.3, overall_timeout_s: f
                 return 2
             code = proc.poll()
             if code is not None:
-                return 0
+                try:
+                    out = proc.stdout.read().decode('utf-8', errors='ignore') if proc.stdout else ''
+                    if out:
+                        print(out)
+                except Exception:
+                    pass
+                return code
             q_text, q_lock, _, _ = read_state()
             if q_lock == 1 and q_text.strip():
                 ans = choose_answer(q_text, step, rounds)
@@ -92,7 +96,6 @@ def simulate(rounds: int = 8, poll_interval_s: float = 0.3, overall_timeout_s: f
         except Exception:
             pass
 
-
 def main():
     code = simulate()
     if code == 0:
@@ -105,8 +108,5 @@ def main():
         print("Pipeline simulation ended with unknown status.")
         sys.exit(code)
 
-
 if __name__ == "__main__":
     main()
-
-

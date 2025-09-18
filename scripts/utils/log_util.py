@@ -6,8 +6,9 @@ import os
 import datetime
 import coloredlogs
 import logging
+from scripts.config_loader import LOG_DIR
 
-LOG_FOLDER = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log')
+LOG_FOLDER = LOG_DIR
 
 if not os.path.exists(LOG_FOLDER):
     try:

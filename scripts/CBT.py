@@ -1,8 +1,12 @@
 import os
 import logging
-import openai
+from openai import OpenAI
+from scripts.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+_api_key = os.environ.get("OPENAI_API_KEY")
+if not _api_key:
+    raise RuntimeError("OPENAI_API_KEY is not set in environment")
+client = OpenAI(api_key=_api_key)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -69,43 +73,42 @@ Response format:
 REFRAME: xxxx
 '''
 
-def _chat_complete(system_content: str, user_content: str, gpt_model: str = "gpt-4"):
-    logger.debug({"model": gpt_model, "user": user_content[:200]})
-    resp = openai.ChatCompletion.create(
-        model=gpt_model,
+def _chat_complete(system_content: str, user_content: str):
+    logger.debug({"model": OPENAI_MODEL, "user": user_content[:200]})
+    resp = client.chat.completions.create(
+        model=OPENAI_MODEL,
         messages=[
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_content},
         ],
-        max_tokens=300,
-        temperature=0.7,
-        top_p=1
+        max_tokens=OPENAI_MAX_TOKENS,
+        temperature=OPENAI_TEMPERATURE,
     )
-    return resp['choices'][0]['message']['content']
+    return resp.choices[0].message.content
 
-def stage1_reasoner(statement: str, unhelpful_thoughts: str, gpt_model: str = "gpt-4") -> str:
+def stage1_reasoner(statement: str, unhelpful_thoughts: str) -> str:
     payload = f'"STATEMENT: {statement}; UNHELPFUL_THOUGHTS: {unhelpful_thoughts};"'
-    return _chat_complete(REASONER_CBT_STAGE1_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(REASONER_CBT_STAGE1_PROMPT, payload)
 
-def stage2_reasoner(statement: str, unhelpful_thoughts: str, challenge: str, gpt_model: str = "gpt-4") -> str:
+def stage2_reasoner(statement: str, unhelpful_thoughts: str, challenge: str) -> str:
     payload = f'"STATEMENT: {statement}; UNHELPFUL_THOUGHTS: {unhelpful_thoughts}; CHALLENGE: {challenge};"'
-    return _chat_complete(REASONER_CBT_STAGE2_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(REASONER_CBT_STAGE2_PROMPT, payload)
 
-def stage3_reasoner(statement: str, unhelpful_thoughts: str, challenge: str, reframe: str, gpt_model: str = "gpt-4") -> str:
+def stage3_reasoner(statement: str, unhelpful_thoughts: str, challenge: str, reframe: str) -> str:
     payload = f'"STATEMENT: {statement}; UNHELPFUL_THOUGHTS: {unhelpful_thoughts}; CHALLENGE: {challenge}; REFRAME: {reframe};"'
-    return _chat_complete(REASONER_CBT_STAGE3_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(REASONER_CBT_STAGE3_PROMPT, payload)
 
-def stage1_guide(statement: str, gpt_model: str = "gpt-4") -> str:
+def stage1_guide(statement: str) -> str:
     payload = f"STATEMENT: {statement}"
-    return _chat_complete(GUIDE_CBT_STAGE1_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(GUIDE_CBT_STAGE1_PROMPT, payload)
 
-def stage2_guide(statement: str, unhelpful_thoughts: str, gpt_model: str = "gpt-4") -> str:
+def stage2_guide(statement: str, unhelpful_thoughts: str) -> str:
     payload = f"STATEMENT: {statement}. UNHELPFUL_THOUGHTS: {unhelpful_thoughts}"
-    return _chat_complete(GUIDE_CBT_STAGE2_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(GUIDE_CBT_STAGE2_PROMPT, payload)
 
-def stage3_guide(statement: str, unhelpful_thoughts: str, challenge: str, gpt_model: str = "gpt-4") -> str:
+def stage3_guide(statement: str, unhelpful_thoughts: str, challenge: str) -> str:
     payload = f"STATEMENT: {statement}. UNHELPFUL_THOUGHTS: {unhelpful_thoughts}. CHALLENGE: {challenge}"
-    return _chat_complete(GUIDE_CBT_STAGE3_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(GUIDE_CBT_STAGE3_PROMPT, payload)
 
 __all__ = [
     "stage1_reasoner",

@@ -1,9 +1,13 @@
 # scripts/reflection_validation.py
 import os
 import logging
-import openai
+from openai import OpenAI
+from scripts.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+_api_key = os.environ.get("OPENAI_API_KEY")
+if not _api_key:
+    raise RuntimeError("OPENAI_API_KEY is not set in environment")
+client = OpenAI(api_key=_api_key)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -52,28 +56,27 @@ Response format:
 VALIDATION: xxxx
 '''
 
-def _chat_complete(system_content: str, user_content: str, gpt_model: str = "gpt-4"):
-    logger.debug({"model": gpt_model, "user": user_content[:200]})
-    resp = openai.ChatCompletion.create(
-        model=gpt_model,
+def _chat_complete(system_content: str, user_content: str):
+    logger.debug({"model": OPENAI_MODEL, "user": user_content[:200]})
+    resp = client.chat.completions.create(
+        model=OPENAI_MODEL,
         messages=[
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_content},
         ],
-        max_tokens=400,
-        temperature=0.7,
-        top_p=1
+        max_tokens=OPENAI_MAX_TOKENS,
+        temperature=OPENAI_TEMPERATURE,
     )
-    return resp['choices'][0]['message']['content']
+    return resp.choices[0].message.content
 
-def rv_reasoner(topic: str, original_response: str, follow_up_response: str, gpt_model: str = "gpt-4") -> str:
+def rv_reasoner(topic: str, original_response: str, follow_up_response: str) -> str:
     payload = f'{{"Topic": {topic!r}, "Original Response": {original_response!r}, "Follow Up Response": {follow_up_response!r}}}'
-    return _chat_complete(RV_FOLLOW_UP_SYSTEM_REASONER_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(RV_FOLLOW_UP_SYSTEM_REASONER_PROMPT, payload)
 
-def rv_guide(topic: str, original_response: str, follow_up_response: str, gpt_model: str = "gpt-4") -> str:
+def rv_guide(topic: str, original_response: str, follow_up_response: str) -> str:
     payload = f'{{"Topic": {topic!r}, "Original Response": {original_response!r}, "Follow-up Response": {follow_up_response!r}}}'
-    return _chat_complete(RV_FOLLOW_UP_GUIDE_SYSTEM_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(RV_FOLLOW_UP_GUIDE_SYSTEM_PROMPT, payload)
 
-def rv_validation(topic: str, original_response: str, follow_up_response: str, gpt_model: str = "gpt-4") -> str:
+def rv_validation(topic: str, original_response: str, follow_up_response: str) -> str:
     payload = f'{{"Topic": {topic!r}, "Original Response": {original_response!r}, "Follow-up Response": {follow_up_response!r}}}'
-    return _chat_complete(RV_FOLLOW_UP_VALIDATION_SYSTEM_PROMPT, payload, gpt_model=gpt_model)
+    return _chat_complete(RV_FOLLOW_UP_VALIDATION_SYSTEM_PROMPT, payload)

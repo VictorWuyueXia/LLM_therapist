@@ -1,16 +1,35 @@
+import os
+import time
 import pandas as pd
-from scripts.config import RECORD_CSV
+from pandas.errors import EmptyDataError
+from scripts.config_loader import RECORD_CSV
 
 HEADER = ["Question", "Question_Lock", "Resp", "Resp_Lock"]
 
 def _read():
-    return pd.read_csv(RECORD_CSV)
+    last_exc = None
+    for _ in range(5):
+        try:
+            time.sleep(0.03)
+            return pd.read_csv(RECORD_CSV)
+        except (EmptyDataError, FileNotFoundError, OSError) as e:
+            last_exc = e
+            time.sleep(0.05)
+    raise last_exc
 
 def _write(df):
-    df.to_csv(RECORD_CSV, columns=HEADER, index=False)
+    time.sleep(0.03)
+    folder = os.path.dirname(RECORD_CSV)
+    if folder and not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+    tmp_path = RECORD_CSV + ".tmp"
+    df.to_csv(tmp_path, columns=HEADER, index=False)
+    os.replace(tmp_path, RECORD_CSV)
+    time.sleep(0.03)
 
 def log_question(text: str):
     while True:
+        time.sleep(0.03)
         data = _read()
         if data.loc[0, "Question_Lock"] == 0:
             data.loc[0, "Question"] = text
@@ -20,6 +39,7 @@ def log_question(text: str):
 
 def get_answer():
     while True:
+        time.sleep(0.03)
         data = _read()
         if data.loc[0, "Resp_Lock"] == 0:
             user_input = data.loc[0, "Resp"]
@@ -40,6 +60,7 @@ def get_answer():
 
 def get_resp_log():
     while True:
+        time.sleep(0.03)
         data = _read()
         if data.loc[0, "Resp_Lock"] == 0:
             follow = data.loc[0, "Resp"]
@@ -49,7 +70,12 @@ def get_resp_log():
     return follow
 
 def init_record():
-    data = _read()
+    try:
+        data = _read()
+    except FileNotFoundError:
+        data = pd.DataFrame([["", 0, "", 1]], columns=HEADER)
+        _write(data)
+    time.sleep(0.03)
     data.loc[0, 'Question_Lock'] = 0
     data.loc[0, 'Resp_Lock'] = 1
     _write(data)

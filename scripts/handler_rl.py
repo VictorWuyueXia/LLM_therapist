@@ -3,7 +3,7 @@ from typing import Tuple, Dict, Any
 
 import numpy as np
 
-from scripts.config import (
+from scripts.config_loader import (
     ITEM_N_STATES,
     NUMBER_QUESTIONS,
     GAMMA,
