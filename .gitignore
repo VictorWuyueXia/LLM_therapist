@@ -1,1 +1,8 @@
 LLM_therapist_paper.pdf
+.conda
+.vscode
+.git
+.DS_Store
+.env
+data/results
+logs

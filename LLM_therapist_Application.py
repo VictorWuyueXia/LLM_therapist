@@ -1,5 +1,5 @@
 # scripts/LLM_therapist_Application.py
-from scripts.rl_session import run_session
+from scripts.handler_rl import HandlerRL
 
 if __name__ == "__main__":
-    run_session()
+    HandlerRL().run()

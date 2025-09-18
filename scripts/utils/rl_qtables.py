@@ -1,5 +1,3 @@
-# scripts/rl_qtables.py
-
 import numpy as np
 import pandas as pd
 from scripts.config import ITEM_N_STATES, ITEM_IMPORTANCE, EPSILON, GAMMA, ALPHA
@@ -88,3 +86,5 @@ def initialize_question_table(number_questions):
             qtab = initialize_question_q_table(number_questions[i] + 1, question_actions)
             all_question_q_table[i] = qtab
     return all_question_q_table
+
+

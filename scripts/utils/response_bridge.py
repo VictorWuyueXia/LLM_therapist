@@ -1,4 +1,3 @@
-# scripts/response_bridge.py
 import re
 from scripts.response_analyzer import classify_dimension_and_score
 
@@ -27,3 +26,5 @@ def get_openai_resp(user_input):
     m = re.match(r"^\s*(Other)\s*,\s*(\d+)\s*$", first, flags=re.IGNORECASE)
     if m: return "NA", 99
     return "NA", 99
+
+

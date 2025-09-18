@@ -1,9 +1,16 @@
 # scripts/text_generators.py
 
 import os
+import logging
 import openai
 
-# Set OpenAI API key from environment variable for security
+logger = logging.getLogger(__name__)
+if not logger.handlers:
+    _ch = logging.StreamHandler()
+    _ch.setLevel(logging.DEBUG)
+    logger.addHandler(_ch)
+
+# Set OpenAI API key from environment variable for security (do not hardcode)
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # The following functions generate prompts and call OpenAI's API to generate various types of text transformations.
@@ -31,8 +38,7 @@ def generate_synonymous_sentences(question_text):
     """
     Use OpenAI API to generate a synonymous sentence for the given question_text.
     """
-    # NOTE: The API key is set again here, but it is already set globally above.
-    openai.api_key = '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'
+    # Use environment-provided API key only
     user_input = question_text
     response = openai.Completion.create(
         engine="text-davinci-001",
@@ -41,7 +47,7 @@ def generate_synonymous_sentences(question_text):
         max_tokens=1000,
     )
     results = response.choices[0].text
-    logger.info(response.choices[0].text)  # Log the generated text for debugging
+    logger.debug(response.choices[0].text)
     return results
 
 def generate_prompt_therapist(user_input):
@@ -68,14 +74,14 @@ def generate_therapist_chat(user_input):
     """
     Use OpenAI API to generate a therapist-like response to the user's input.
     """
-    openai.api_key = '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'
+    # Use environment-provided API key only
     response = openai.Completion.create(
         engine="text-davinci-001",
         prompt=generate_prompt_therapist(user_input),
         temperature=0.6,
         max_tokens=1000,
     )
-    logger.info(response.choices[0].text)  # Log the generated text for debugging
+    logger.debug(response.choices[0].text)
     result = response.choices[0].text
     return result
 
@@ -101,14 +107,14 @@ def generate_change(user_input):
     """
     Use OpenAI API to convert a first-person sentence to a second-person sentence.
     """
-    openai.api_key = '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'
+    # Use environment-provided API key only
     response = openai.Completion.create(
         engine="text-davinci-001",
         prompt=generate_prompt_change(user_input),
         temperature=0.6,
         max_tokens=1000,
     )
-    logger.info(response.choices[0].text)  # Log the generated text for debugging
+    logger.debug(response.choices[0].text)
     resp = response.choices[0].text
     return resp
 
@@ -134,14 +140,14 @@ def generate_change_positive(user_input):
     """
     Use OpenAI API to convert a question to a positive declarative sentence.
     """
-    openai.api_key = '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'
+    # Use environment-provided API key only
     response = openai.Completion.create(
         engine="text-davinci-001",
         prompt=generate_prompt_change_positive(user_input),
         temperature=0.6,
         max_tokens=1000,
     )
-    logger.info(response.choices[0].text)  # Log the generated text for debugging
+    logger.debug(response.choices[0].text)
     resp = response.choices[0].text
     return resp
 
@@ -167,13 +173,13 @@ def generate_change_negative(user_input):
     """
     Use OpenAI API to convert a question to a negative declarative sentence.
     """
-    openai.api_key = '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'
+    # Use environment-provided API key only
     response = openai.Completion.create(
         engine="text-davinci-001",
         prompt=generate_prompt_change_negative(user_input),
         temperature=0.6,
         max_tokens=1000,
     )
-    logger.info(response.choices[0].text)  # Log the generated text for debugging
+    logger.debug(response.choices[0].text)
     resp = response.choices[0].text
     return resp

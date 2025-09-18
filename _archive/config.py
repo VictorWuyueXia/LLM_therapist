@@ -67,3 +67,20 @@ NUMBER_QUESTIONS = _CFG.get(
     "number_questions",
     [0, 4, 1, 2, 2, 5, 1, 1, 1, 2, 3, 2, 1, 1, 3, 2, 1, 3, 1, 1],
 )
+
+# OpenAI defaults
+OPENAI_MODEL = _CFG.get("openai_model", "gpt-4o")
+
+# Max tokens per module/functionality (reflect current code defaults)
+_MAX_TOKENS = _CFG.get("max_tokens", {}) or {}
+
+MAX_TOKENS_RESPONSE_ANALYZER = int(_MAX_TOKENS.get("response_analyzer", 400))
+MAX_TOKENS_REFLECTION_VALIDATION = int(_MAX_TOKENS.get("reflection_validation", 400))
+MAX_TOKENS_CBT = int(_MAX_TOKENS.get("cbt", 300))
+
+_MT_TXT = _MAX_TOKENS.get("text_generators", {}) or {}
+MAX_TOKENS_TEXTGEN_SYNONYMOUS = int(_MT_TXT.get("synonymous", 200))
+MAX_TOKENS_TEXTGEN_THERAPIST = int(_MT_TXT.get("therapist_chat", 200))
+MAX_TOKENS_TEXTGEN_CHANGE = int(_MT_TXT.get("change", 120))
+MAX_TOKENS_TEXTGEN_CHANGE_POS = int(_MT_TXT.get("change_positive", 120))
+MAX_TOKENS_TEXTGEN_CHANGE_NEG = int(_MT_TXT.get("change_negative", 120))
