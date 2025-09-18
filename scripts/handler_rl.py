@@ -1,4 +1,5 @@
 import time
+import logging
 from typing import Tuple, Dict, Any
 
 import numpy as np
@@ -57,6 +58,7 @@ class HandlerRL:
         """
         Initialize records, load question library, and set up Q-tables and masks.
         """
+        logger.info("Initializing RL handler setup: loading records and question library.")
         init_record()
         self.question_lib = load_question_lib(QUESTION_LIB_FILENAME)
         # Define possible actions for item selection (as string indices)
@@ -66,6 +68,7 @@ class HandlerRL:
         self.all_question_q_table = initialize_question_table(NUMBER_QUESTIONS)
         self.item_q_table = initialize_q_table(ITEM_N_STATES, item_actions)
         self.item_actions = item_actions
+        logger.info("RL handler setup complete.")
 
     def evaluate_result(self, DLA_result, S, question_A, user_input, original_question_asked):
         """
@@ -102,6 +105,7 @@ class HandlerRL:
         Handles the RL loop for asking questions within a given item (S).
         Returns the total reward, termination flag, and the last question asked.
         """
+        logger.info(f"Starting question RL loop for item S={S}.")
         question_reward = []
         DLA_terminate = 0
         # If there are multiple questions for this item, use RL to select among them
@@ -151,7 +155,12 @@ class HandlerRL:
                             )
                 # Calculate the reward for this question based on scores
                 all_score = self.question_lib[str(S)][str(question_A)]["score"]
-                question_openai_res = np.mean(all_score)
+                if not all_score:
+                    question_openai_res = 0.0
+                    # Debug log: if score is still empty after answer, print S, question_A, DLA_result for troubleshooting
+                    logging.debug(f"[RL DEBUG] Empty score after answer: S={S}, question_A={question_A}, DLA_result={DLA_result}")
+                else:
+                    question_openai_res = np.mean(all_score)
                 # Get the next state and reward from the environment
                 question_S_, question_R = get_env_feedback(
                     question_S, question_A, question_openai_res, DLA_terminate, question_mask
@@ -168,6 +177,7 @@ class HandlerRL:
                 question_S = question_S_
                 # If the DLA process signals termination, end the loop
                 if DLA_terminate == 1:
+                    logger.info(f"Question RL loop for item S={S} terminated by DLA signal.")
                     is_terminated = True
             # Save updated Q-table and mask for this item
             self.all_question_q_table[S] = new_question_q_table.copy()
@@ -202,6 +212,7 @@ class HandlerRL:
             question_reward.append(question_openai_res)
 
         # Return the total reward, termination flag, and last question
+        logger.info(f"Finished question RL loop for item S={S}. Total reward: {float(sum(question_reward))}, DLA_terminate: {int(DLA_terminate)}")
         return float(sum(question_reward)), int(DLA_terminate), self.last_question
 
     def run(self):
@@ -209,6 +220,7 @@ class HandlerRL:
         Main RL loop for the entire screening process.
         Iteratively selects items and asks questions using RL, updating Q-tables and saving results.
         """
+        logger.info("Starting main RL screening process.")
         self.setup()
         new_q_table = self.item_q_table.copy()
         S = 0  # Start state for item RL
@@ -236,12 +248,14 @@ class HandlerRL:
             S = S_
             # If the DLA process signals termination, end the loop and save results
             if DLA_terminate == 1:
+                logger.info("DLA process signaled termination. Saving question library and ending session.")
                 is_terminated = True
                 save_filename = QUESTION_LIB_FILENAME.replace(".json", f"_{int(time.time())}.json")
                 save_question_lib(save_filename, self.question_lib)
                 log_question("Goodbye. We will do the screening in another time. 886")
         # Save results if terminated
         if is_terminated:
+            logger.info("Session terminated. Saving question library and generating results.")
             save_filename = QUESTION_LIB_FILENAME.replace(".json", f"_{int(time.time())}.json")
             save_question_lib(save_filename, self.question_lib)
         # Generate final results for this session

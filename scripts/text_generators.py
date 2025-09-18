@@ -53,7 +53,7 @@ def generate_synonymous_sentences(question_text):
         max_tokens=OPENAI_MAX_TOKENS,
     )
     results = response.choices[0].message.content
-    logger.debug(response.choices[0].text)
+    logger.debug(response.choices[0].message.content)
     return results
 
 def generate_prompt_therapist(user_input):
