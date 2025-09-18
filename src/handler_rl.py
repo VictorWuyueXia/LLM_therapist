@@ -34,7 +34,10 @@ from src.utils.text_generators import (
 )
 from src.questioner import classify_segments, evaluate_result_core
 from src.reflection_validation import rv_reasoner, rv_guide, rv_validation
-
+from src.CBT import (
+    stage1_reasoner, stage2_reasoner, stage3_reasoner,
+    stage1_guide, stage2_guide, stage3_guide,
+)
 
 # Set up logger for this module
 from src.utils.log_util import get_logger
@@ -133,7 +136,22 @@ class HandlerRL:
             therapist_resp = generate_therapist_chat((last_q + " " + follow_up).strip())
             log_question(therapist_resp)
             self.last_question = therapist_resp
+            
+            # === CBT three stages（no add interaction, only generate and record） ===
+            # select statement for CBT（use user's follow_up）
+            statement = follow_up.strip()
+            cbt_stage1_unhelpful = stage1_guide(statement)
+            cbt_stage1_decision_raw = stage1_reasoner(statement, cbt_stage1_unhelpful)
+            cbt_stage1_decision = "1" if "1" in str(cbt_stage1_decision_raw) else "0"
 
+            cbt_stage2_challenge = stage2_guide(statement, cbt_stage1_unhelpful)
+            cbt_stage2_decision_raw = stage2_reasoner(statement, cbt_stage1_unhelpful, cbt_stage2_challenge)
+            cbt_stage2_decision = "1" if "1" in str(cbt_stage2_decision_raw) else "0"
+
+            cbt_stage3_reframe = stage3_guide(statement, cbt_stage1_unhelpful, cbt_stage2_challenge)
+            cbt_stage3_decision_raw = stage3_reasoner(statement, cbt_stage1_unhelpful, cbt_stage2_challenge, cbt_stage3_reframe)
+            cbt_stage3_decision = "1" if "1" in str(cbt_stage3_decision_raw) else "0"
+            
             # Record notes (expand RV fields)
             logger.info("Recording notes for this question/response.")
             note_resp = [
@@ -145,6 +163,12 @@ class HandlerRL:
                 "followup_resp_1: " + follow_up if follow_up_0 else "followup_resp_1: "
                 "rv_validation: " + rv_validation_text,
                 "therapist_resp: " + therapist_resp,
+                "cbt_stage1_unhelpful: " + cbt_stage1_unhelpful,
+                "cbt_stage1_decision: " + cbt_stage1_decision,
+                "cbt_stage2_challenge: " + cbt_stage2_challenge,
+                "cbt_stage2_decision: " + cbt_stage2_decision,
+                "cbt_stage3_reframe: " + cbt_stage3_reframe,
+                "cbt_stage3_decision: " + cbt_stage3_decision,
             ]
             self.question_lib[str(S)][str(question_A)]["notes"].append(note_resp)
             
