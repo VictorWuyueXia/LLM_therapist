@@ -2,7 +2,7 @@ import os
 import time
 import pandas as pd
 from pandas.errors import EmptyDataError
-from scripts.config_loader import RECORD_CSV
+from scripts.utils.config_loader import RECORD_CSV
 
 HEADER = ["Question", "Question_Lock", "Resp", "Resp_Lock"]
 

@@ -6,7 +6,7 @@ import os
 import datetime
 import coloredlogs
 import logging
-from scripts.config_loader import LOG_DIR
+from scripts.utils.config_loader import LOG_DIR
 
 LOG_FOLDER = LOG_DIR
 

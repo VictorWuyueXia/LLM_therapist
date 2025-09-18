@@ -3,7 +3,7 @@
 import os
 import logging
 from openai import OpenAI
-from scripts.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+from scripts.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:

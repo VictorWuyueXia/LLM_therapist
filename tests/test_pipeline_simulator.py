@@ -12,7 +12,7 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from scripts.config_loader import RECORD_CSV
+from scripts.utils.config_loader import RECORD_CSV
 
 HEADER = ["Question", "Question_Lock", "Resp", "Resp_Lock"]
 
@@ -21,8 +21,9 @@ def _atomic_write(df: pd.DataFrame) -> None:
     folder = os.path.dirname(RECORD_CSV)
     if folder and not os.path.exists(folder):
         os.makedirs(folder, exist_ok=True)
-    tmp_path = RECORD_CSV + ".tmp"
+    tmp_path = RECORD_CSV + ".test.tmp"
     df.to_csv(tmp_path, columns=HEADER, index=False)
+    time.sleep(0.1)
     os.replace(tmp_path, RECORD_CSV)
     time.sleep(0.03)
 
@@ -56,12 +57,18 @@ def write_answer(answer_text: str) -> None:
 def choose_answer(question_text: str, step_idx: int, max_steps: int) -> str:
     if step_idx >= max_steps - 1:
         return "Stop"
-    return random.choice(['Yes', 'No'])
+    return random.choice(['Yes', 'No', 'I think so', 'I don\'t think so'])
 
 def run_app_background() -> subprocess.Popen:
     py = sys.executable
     cmd = [py, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "LLM_therapist_Application.py")]
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    
+    # # running in the background
+    # proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    
+    # running in the foreground
+    proc = subprocess.Popen(cmd)
+    
     return proc
 
 def simulate(rounds: int = 8, poll_interval_s: float = 0.3, overall_timeout_s: float = 180.0) -> int:

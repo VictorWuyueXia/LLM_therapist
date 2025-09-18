@@ -1,7 +1,7 @@
 import os
 import logging
 from openai import OpenAI
-from scripts.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+from scripts.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
 _api_key = os.environ.get("OPENAI_API_KEY")
 if not _api_key:

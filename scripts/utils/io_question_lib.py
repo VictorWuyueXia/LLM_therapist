@@ -1,7 +1,7 @@
 import json
 import csv
 import os
-from scripts.config_loader import REPORT_FILE, NOTES_FILE
+from scripts.utils.config_loader import REPORT_FILE, NOTES_FILE
 
 def load_question_lib(path: str):
     with open(path, "r", encoding="utf-8") as f:

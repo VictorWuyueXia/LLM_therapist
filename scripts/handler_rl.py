@@ -3,13 +3,17 @@ import logging
 from typing import Tuple, Dict, Any
 
 import numpy as np
+import os
+import pandas as pd
 
-from scripts.config_loader import (
+from scripts.utils.config_loader import (
     ITEM_N_STATES,
     NUMBER_QUESTIONS,
     GAMMA,
     ALPHA,
     QUESTION_LIB_FILENAME,
+    SUBJECT_ID,
+    DATA_DIR,
 )
 from scripts.utils.io_question_lib import load_question_lib, save_question_lib, generate_results
 from scripts.utils.io_record import log_question, get_answer, get_resp_log, init_record
@@ -21,7 +25,7 @@ from scripts.utils.rl_qtables import (
     initialize_question_table,
 )
 from scripts.utils.response_bridge import get_openai_resp
-from scripts.text_generators import (
+from scripts.utils.text_generators import (
     generate_change,
     generate_change_positive,
     generate_change_negative,
@@ -68,6 +72,13 @@ class HandlerRL:
         self.all_question_q_table = initialize_question_table(NUMBER_QUESTIONS)
         self.item_q_table = initialize_q_table(ITEM_N_STATES, item_actions)
         self.item_actions = item_actions
+  
+        # Load persistent Q tables (if exist)
+        qdir = os.path.join(DATA_DIR, "q_tables")
+        if os.path.exists(os.path.join(qdir, f"item_qtable_{SUBJECT_ID}.csv")):
+            self.item_q_table = pd.read_csv(os.path.join(qdir, f"item_qtable_{SUBJECT_ID}.csv"), index_col=0)
+        logger.info(f"Loaded item Q table for subject {SUBJECT_ID}.")
+        
         logger.info("RL handler setup complete.")
 
     def evaluate_result(self, DLA_result, S, question_A, user_input, original_question_asked):
@@ -110,78 +121,81 @@ class HandlerRL:
         DLA_terminate = 0
         # If there are multiple questions for this item, use RL to select among them
         if NUMBER_QUESTIONS[S] > 1:
-            # Prepare actions, Q-table, and mask for this item
-            question_actions = [str(element) for element in np.arange(NUMBER_QUESTIONS[S] + 1)]
-            question_q_table = self.all_question_q_table[S].copy()
-            question_mask = self.all_question_mask[S]
-            new_question_q_table = question_q_table.copy()
-            is_terminated = False
-            number_of_states = NUMBER_QUESTIONS[S] + 1
-            question_S = 0  # Start state for question RL
-            while not is_terminated:
-                # Select an action (question) using the RL policy
-                question_A = choose_action(question_S, question_q_table, question_mask, number_of_states, question_actions)
-                # Mark this question as used
-                question_mask[int(question_A)] = 0
-                # If this question has not been answered yet
-                if len(self.question_lib[str(S)][str(question_A)]["score"]) == 0:
-                    # Randomly select a question variant if multiple are available
-                    number_of_questions = len(self.question_lib[str(S)][str(question_A)]["question"])
-                    choice_of_question = np.random.randint(number_of_questions)
-                    question_text = self.question_lib[str(S)][str(question_A)]["question"][choice_of_question]
-                    # With small probability, generate a synonymous version of the question
-                    if np.random.uniform() > 0.95:
-                        question_text = generate_synonymous_sentences(question_text)
-                    # Prepare the full question to ask (including context)
-                    question_text_ask = self.last_question + "  " + question_text
-                    log_question(question_text_ask)
-                    # Get user input for this question
-                    _ , user_input = get_answer()
-                    # Classify the user response
-                    DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
-                    # Evaluate the result and update state
-                    valid, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
-                        DLA_result, S, question_A, user_input, question_text
-                    )
-                    # If the answer is not valid, keep asking until a valid answer is given or terminated
-                    if valid == 0 and DLA_terminate == 0:
-                        valid_loop = 0
-                        while valid_loop < 1:
-                            log_question(question_text_ask)
-                            _ , user_input = get_answer()
-                            DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
-                            valid_loop, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
-                                DLA_result, S, question_A, user_input, question_text
-                            )
-                # Calculate the reward for this question based on scores
-                all_score = self.question_lib[str(S)][str(question_A)]["score"]
-                if not all_score:
-                    question_openai_res = 0.0
-                    # Debug log: if score is still empty after answer, print S, question_A, DLA_result for troubleshooting
-                    logging.debug(f"[RL DEBUG] Empty score after answer: S={S}, question_A={question_A}, DLA_result={DLA_result}")
-                else:
-                    question_openai_res = np.mean(all_score)
-                # Get the next state and reward from the environment
-                question_S_, question_R = get_env_feedback(
-                    question_S, question_A, question_openai_res, DLA_terminate, question_mask
-                )
-                question_reward.append(question_R)
-                # Q-learning update for this question's Q-table
-                q_predict = question_q_table.loc[question_S, question_A]
-                if question_S_ != 'terminal':
-                    q_target = question_R + GAMMA * question_q_table.iloc[question_S_, :].max()
-                else:
-                    q_target = question_R
-                    is_terminated = True
-                new_question_q_table.loc[question_S, question_A] += ALPHA * (q_target - q_predict)
-                question_S = question_S_
-                # If the DLA process signals termination, end the loop
-                if DLA_terminate == 1:
-                    logger.info(f"Question RL loop for item S={S} terminated by DLA signal.")
-                    is_terminated = True
-            # Save updated Q-table and mask for this item
-            self.all_question_q_table[S] = new_question_q_table.copy()
-            self.all_question_mask[S] = question_mask
+            # Raise Exception
+            raise Exception("Multiple questions for one dimension is deprecated.")
+        
+            # # Prepare actions, Q-table, and mask for this item
+            # question_actions = [str(element) for element in np.arange(NUMBER_QUESTIONS[S] + 1)]
+            # question_q_table = self.all_question_q_table[S].copy()
+            # question_mask = self.all_question_mask[S]
+            # new_question_q_table = question_q_table.copy()
+            # is_terminated = False
+            # number_of_states = NUMBER_QUESTIONS[S] + 1
+            # question_S = 0  # Start state for question RL
+            # while not is_terminated:
+            #     # Select an action (question) using the RL policy
+            #     question_A = choose_action(question_S, question_q_table, question_mask, number_of_states, question_actions)
+            #     # Mark this question as used
+            #     question_mask[int(question_A)] = 0
+            #     # If this question has not been answered yet
+            #     if len(self.question_lib[str(S)][str(question_A)]["score"]) == 0:
+            #         # Randomly select a question variant if multiple are available
+            #         number_of_questions = len(self.question_lib[str(S)][str(question_A)]["question"])
+            #         choice_of_question = np.random.randint(number_of_questions)
+            #         question_text = self.question_lib[str(S)][str(question_A)]["question"][choice_of_question]
+            #         # With small probability, generate a synonymous version of the question
+            #         if np.random.uniform() > 0.95:
+            #             question_text = generate_synonymous_sentences(question_text)
+            #         # Prepare the full question to ask (including context)
+            #         question_text_ask = self.last_question + "  " + question_text
+            #         log_question(question_text_ask)
+            #         # Get user input for this question
+            #         _ , user_input = get_answer()
+            #         # Classify the user response
+            #         DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
+            #         # Evaluate the result and update state
+            #         valid, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
+            #             DLA_result, S, question_A, user_input, question_text
+            #         )
+            #         # If the answer is not valid, keep asking until a valid answer is given or terminated
+            #         if valid == 0 and DLA_terminate == 0:
+            #             valid_loop = 0
+            #             while valid_loop < 1:
+            #                 log_question(question_text_ask)
+            #                 _ , user_input = get_answer()
+            #                 DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
+            #                 valid_loop, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
+            #                     DLA_result, S, question_A, user_input, question_text
+            #                 )
+            #     # Calculate the reward for this question based on scores
+            #     all_score = self.question_lib[str(S)][str(question_A)]["score"]
+            #     if not all_score:
+            #         question_openai_res = 0.0
+            #         # Debug log: if score is still empty after answer, print S, question_A, DLA_result for troubleshooting
+            #         logging.debug(f"[RL DEBUG] Empty score after answer: S={S}, question_A={question_A}, DLA_result={DLA_result}")
+            #     else:
+            #         question_openai_res = np.mean(all_score)
+            #     # Get the next state and reward from the environment
+            #     question_S_, question_R = get_env_feedback(
+            #         question_S, question_A, question_openai_res, DLA_terminate, question_mask
+            #     )
+            #     question_reward.append(question_R)
+            #     # Q-learning update for this question's Q-table
+            #     q_predict = question_q_table.loc[question_S, question_A]
+            #     if question_S_ != 'terminal':
+            #         q_target = question_R + GAMMA * question_q_table.iloc[question_S_, :].max()
+            #     else:
+            #         q_target = question_R
+            #         is_terminated = True
+            #     new_question_q_table.loc[question_S, question_A] += ALPHA * (q_target - q_predict)
+            #     question_S = question_S_
+            #     # If the DLA process signals termination, end the loop
+            #     if DLA_terminate == 1:
+            #         logger.info(f"Question RL loop for item S={S} terminated by DLA signal.")
+            #         is_terminated = True
+            # # Save updated Q-table and mask for this item
+            # self.all_question_q_table[S] = new_question_q_table.copy()
+            # self.all_question_mask[S] = question_mask
         else:
             # If only one question for this item, ask it directly
             question_A = "1"
@@ -258,5 +272,12 @@ class HandlerRL:
             logger.info("Session terminated. Saving question library and generating results.")
             save_filename = QUESTION_LIB_FILENAME.replace(".json", f"_{int(time.time())}.json")
             save_question_lib(save_filename, self.question_lib)
+            
+            # Save Q tables (in parallel with existing results)
+            qdir = os.path.join(DATA_DIR, "q_tables")
+            if not os.path.exists(qdir):
+                os.makedirs(qdir, exist_ok=True)
+            self.item_q_table.to_csv(os.path.join(qdir, "item_qtable_{SUBJECT_ID}.csv"))
+    
         # Generate final results for this session
         generate_results(self.question_lib, self.new_response)

@@ -1,15 +1,18 @@
 # scripts/response_analyzer.py
+
 import os
 import logging
 from openai import OpenAI
-from scripts.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+from scripts.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
-# Environment variable for API key. If not set, subsequent calls will raise an error directly (following the rule of not suppressing errors).
+# Retrieve OpenAI API key from environment variable; fail fast if not set
 _api_key = os.environ.get("OPENAI_API_KEY")
 if not _api_key:
     raise RuntimeError("OPENAI_API_KEY is not set in environment")
+# Initialize OpenAI client with API key
 client = OpenAI(api_key=_api_key)
 
+# Set up logger for this module
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 if not logger.handlers:
@@ -17,8 +20,9 @@ if not logger.handlers:
     _ch.setLevel(logging.DEBUG)
     logger.addHandler(_ch)
 
-# === Prompt（from CaiRE_Response_Analyzer.ipynb）===
+# === Prompt templates for OpenAI API ===
 
+# Prompt for classifying user input into dimension and score
 INIT_ASKER_SYSTEM_PROMPT_V2 = '''You are an AI assistant who has rich psychology and mental health commonsense knowledge and strong reasoning abilities.
 You will be provided with:
 1. All dimension names.
@@ -100,6 +104,7 @@ The example user inputs with their dimensions and scores:
 {"in":"I haven't gone to my case manager for a while.", "res": "1_care, 1"}
 '''
 
+# Prompt for summarizing user response in a reflective way
 REFLECTIVE_SUMMARIZER_PROMPT = ''' You are an intelligent agent to summarize what the user said.
 You will be provide with:
 The original question asked and the user response in the format of '{"Original Question": XXXX, "User Response": XXXX}'
@@ -108,6 +113,7 @@ Response format:
 REFLECTIVE_SUMMERIZER: XXXXX
 '''
 
+# Prompt for rephrasing a question as a therapist
 REPHRASER_PROMPT = ''' You are an intelligent agent who have strong reasoning capability and psychology and mental health commonsense knowledge. 
 You will be provide with:
 The original question in the format of {"Original Question": XXXXX}. 
@@ -117,7 +123,12 @@ REPHRASER: XXXXX
 '''
 
 def _chat_complete(system_content: str, user_content: str):
-    logger.debug({"model": OPENAI_MODEL, "user": user_content[:200]})
+    """
+    Send a chat completion request to OpenAI API with the given system and user content.
+    Returns the content of the first message in the response.
+    """
+    logger.info("Sending request to OpenAI API for chat completion.")
+    logger.debug(f"Model: {OPENAI_MODEL}, User content preview: {user_content[:100]}")
     resp = client.chat.completions.create(
         model=OPENAI_MODEL,
         messages=[
@@ -127,19 +138,37 @@ def _chat_complete(system_content: str, user_content: str):
         max_tokens=OPENAI_MAX_TOKENS,
         temperature=OPENAI_TEMPERATURE,
     )
+    logger.info("Received response from OpenAI API.")
     return resp.choices[0].message.content
 
 def classify_dimension_and_score(user_input: str) -> str:
     """
-    # Input: Any user response string
-    # Output: Raw model text, expected format such as '1_weight, 2' or 'Yes, 0' (not parsed for now)
+    Classify user input into a dimension and score using the OpenAI API.
+    Input: user_input (str) - any user response string.
+    Output: Raw model text, e.g., '1_weight, 2' or 'Yes, 0'.
     """
+    logger.info("Classifying user input for dimension and score.")
+    logger.debug(f"User input: {user_input}")
     return _chat_complete(INIT_ASKER_SYSTEM_PROMPT_V2, user_input)
 
 def reflective_summarizer(original_question: str, user_response: str) -> str:
+    """
+    Summarize the user's response in a reflective, third-person style.
+    Input: original_question (str), user_response (str)
+    Output: Reflective summary string.
+    """
+    logger.info("Generating reflective summary for user response.")
+    logger.debug(f"Original question: {original_question}, User response: {user_response}")
     payload = f'{{"Original Question": "{original_question}", "User Response": "{user_response}"}}'
     return _chat_complete(REFLECTIVE_SUMMARIZER_PROMPT, payload)
 
 def rephrase_question(original_question: str) -> str:
+    """
+    Rephrase the original question as a therapist would.
+    Input: original_question (str)
+    Output: Rephrased question string.
+    """
+    logger.info("Rephrasing question for therapist style.")
+    logger.debug(f"Original question: {original_question}")
     payload = f'{{"Original Question": "{original_question}"}}'
     return _chat_complete(REPHRASER_PROMPT, payload)
