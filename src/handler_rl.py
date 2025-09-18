@@ -32,10 +32,17 @@ from src.utils.text_generators import (
     generate_synonymous_sentences,
     generate_therapist_chat,
 )
-from src.utils.log_util import get_logger
 from src.questioner import classify_segments, evaluate_result_core
+from src.reflection_validation import rv_reasoner, rv_guide, rv_validation
 
-logger = get_logger("HandlerRL")
+
+# Set up logger for this module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    _ch = logging.StreamHandler()
+    _ch.setLevel(logging.INFO)
+    logger.addHandler(_ch)
 
 class HandlerRL:
     """
@@ -85,8 +92,9 @@ class HandlerRL:
         """
         Evaluate the result of a user's response to a question.
         Updates the question library and last question as needed.
-        Optionally generates a therapist response and logs notes.
+        ReflectionValidation three steps（topic = the dimension label of the current question）
         """
+        logger.info(f"Evaluating result for item {S}, question {question_A}.")
         # Call the core evaluation logic
         valid, terminate, last_q, updated = evaluate_result_core(
             [(lbl, sc) for lbl, sc in DLA_result], S, question_A, user_input, original_question_asked, self.question_lib
@@ -95,20 +103,54 @@ class HandlerRL:
         # Update last_question if a new one is provided
         self.last_question = last_q or self.last_question
         if last_q:
+            logger.info(f"Logging last question and collecting follow-up for item {S}, question {question_A}.")
             # Log the last question and get a follow-up response
             log_question(last_q)
             follow_up = get_resp_log()
-            # Optionally generate a therapist response based on last question and follow-up
+
+            # ReflectionValidation three steps（topic = the dimension label of the current question）
+            topic = self.question_lib[str(S)][str(question_A)]["label"]
+            original_resp = user_input[0] if user_input else ""
+
+            logger.info(f"Running ReflectionValidation reasoner for topic '{topic}'.")
+            rv_decision_raw = rv_reasoner(topic, original_resp, follow_up)
+            # Simple parsing: extract '0/1'（no try/except, error directly thrown）
+            rv_decision_token = "0" if "0" in rv_decision_raw else "1"
+            logger.info(f"ReflectionValidation decision: {rv_decision_token}")
+
+            # If not related (1), give guidance, recollect follow-up
+            rv_guide_text = ""
+            follow_up_0 = ""
+            if rv_decision_token == "1":
+                logger.info("Follow-up not related, generating guidance and recollecting follow-up.")
+                follow_up_0 = follow_up
+                rv_guide_text = rv_guide(topic, original_resp, follow_up)
+                log_question(rv_guide_text)
+                follow_up = get_resp_log()
+
+            # Empathic validation
+            logger.info("Running ReflectionValidation empathic validation.")
+            rv_validation_text = rv_validation(topic, original_resp, follow_up)
+
+            # Generate therapist response
+            logger.info("Generating therapist response.")
             therapist_resp = generate_therapist_chat((last_q + " " + follow_up).strip())
             self.last_question = therapist_resp
-            # Record notes for this question/response interaction
+
+            # Record notes (expand RV fields)
+            logger.info("Recording notes for this question/response.")
             note_resp = [
                 "original_question: " + original_question_asked,
                 "original_resp: " + (user_input[0] if user_input else ""),
-                "followup_resp: " + follow_up,
+                "followup_resp: " + follow_up_0 if follow_up_0 else "followup_resp: " + follow_up,
+                "rv_decision: " + rv_decision_token,
+                ("rv_guide: " + rv_guide_text) if rv_guide_text else "rv_guide: ",
+                "followup_resp_1: " + follow_up if follow_up_0 else "followup_resp_1: "
+                "rv_validation: " + rv_validation_text,
                 "therapist_resp: " + therapist_resp,
             ]
             self.question_lib[str(S)][str(question_A)]["notes"].append(note_resp)
+            
         return valid, terminate, self.last_question, self.question_lib
 
     def ask_question(self, S: int) -> Tuple[float, int, str]:
@@ -277,7 +319,7 @@ class HandlerRL:
             qdir = os.path.join(DATA_DIR, "q_tables")
             if not os.path.exists(qdir):
                 os.makedirs(qdir, exist_ok=True)
-            self.item_q_table.to_csv(os.path.join(qdir, "item_qtable_{SUBJECT_ID}.csv"))
+            self.item_q_table.to_csv(os.path.join(qdir, f"item_qtable_{SUBJECT_ID}.csv"))
     
         # Generate final results for this session
         generate_results(self.question_lib, self.new_response)

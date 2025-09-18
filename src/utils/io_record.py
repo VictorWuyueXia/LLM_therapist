@@ -1,8 +1,17 @@
 import os
+import logging
 import time
 import pandas as pd
 from pandas.errors import EmptyDataError
 from src.utils.config_loader import RECORD_CSV
+
+# Set up logger for this module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    _ch = logging.StreamHandler()
+    _ch.setLevel(logging.INFO)
+    logger.addHandler(_ch)
 
 HEADER = ["Question", "Question_Lock", "Resp", "Resp_Lock"]
 
@@ -29,17 +38,18 @@ def _write(df):
 
 def log_question(text: str):
     while True:
-        time.sleep(0.03)
+        time.sleep(0.1)
         data = _read()
         if data.loc[0, "Question_Lock"] == 0:
             data.loc[0, "Question"] = text
             data.loc[0, "Question_Lock"] = 1
             _write(data)
+            logger.info(f"Prompted question: {text}")
             break
 
 def get_answer():
     while True:
-        time.sleep(0.03)
+        time.sleep(0.1)
         data = _read()
         if data.loc[0, "Resp_Lock"] == 0:
             user_input = data.loc[0, "Resp"]
@@ -60,12 +70,13 @@ def get_answer():
 
 def get_resp_log():
     while True:
-        time.sleep(0.03)
+        time.sleep(0.1)
         data = _read()
         if data.loc[0, "Resp_Lock"] == 0:
             follow = data.loc[0, "Resp"]
             data.loc[0, "Resp_Lock"] = 1
             _write(data)
+            logger.info(f"Received response: {follow}")
             break
     return follow
 
