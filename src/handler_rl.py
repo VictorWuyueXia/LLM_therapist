@@ -37,12 +37,8 @@ from src.reflection_validation import rv_reasoner, rv_guide, rv_validation
 
 
 # Set up logger for this module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-if not logger.handlers:
-    _ch = logging.StreamHandler()
-    _ch.setLevel(logging.INFO)
-    logger.addHandler(_ch)
+from src.utils.log_util import get_logger
+logger = get_logger("HandlerRL")
 
 class HandlerRL:
     """
@@ -135,6 +131,7 @@ class HandlerRL:
             # Generate therapist response
             logger.info("Generating therapist response.")
             therapist_resp = generate_therapist_chat((last_q + " " + follow_up).strip())
+            log_question(therapist_resp)
             self.last_question = therapist_resp
 
             # Record notes (expand RV fields)
@@ -161,111 +158,48 @@ class HandlerRL:
         logger.info(f"Starting question RL loop for item S={S}.")
         question_reward = []
         DLA_terminate = 0
-        # If there are multiple questions for this item, use RL to select among them
-        if NUMBER_QUESTIONS[S] > 1:
-            # Raise Exception
-            raise Exception("Multiple questions for one dimension is deprecated.")
         
-            # # Prepare actions, Q-table, and mask for this item
-            # question_actions = [str(element) for element in np.arange(NUMBER_QUESTIONS[S] + 1)]
-            # question_q_table = self.all_question_q_table[S].copy()
-            # question_mask = self.all_question_mask[S]
-            # new_question_q_table = question_q_table.copy()
-            # is_terminated = False
-            # number_of_states = NUMBER_QUESTIONS[S] + 1
-            # question_S = 0  # Start state for question RL
-            # while not is_terminated:
-            #     # Select an action (question) using the RL policy
-            #     question_A = choose_action(question_S, question_q_table, question_mask, number_of_states, question_actions)
-            #     # Mark this question as used
-            #     question_mask[int(question_A)] = 0
-            #     # If this question has not been answered yet
-            #     if len(self.question_lib[str(S)][str(question_A)]["score"]) == 0:
-            #         # Randomly select a question variant if multiple are available
-            #         number_of_questions = len(self.question_lib[str(S)][str(question_A)]["question"])
-            #         choice_of_question = np.random.randint(number_of_questions)
-            #         question_text = self.question_lib[str(S)][str(question_A)]["question"][choice_of_question]
-            #         # With small probability, generate a synonymous version of the question
-            #         if np.random.uniform() > 0.95:
-            #             question_text = generate_synonymous_sentences(question_text)
-            #         # Prepare the full question to ask (including context)
-            #         question_text_ask = self.last_question + "  " + question_text
-            #         log_question(question_text_ask)
-            #         # Get user input for this question
-            #         _ , user_input = get_answer()
-            #         # Classify the user response
-            #         DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
-            #         # Evaluate the result and update state
-            #         valid, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
-            #             DLA_result, S, question_A, user_input, question_text
-            #         )
-            #         # If the answer is not valid, keep asking until a valid answer is given or terminated
-            #         if valid == 0 and DLA_terminate == 0:
-            #             valid_loop = 0
-            #             while valid_loop < 1:
-            #                 log_question(question_text_ask)
-            #                 _ , user_input = get_answer()
-            #                 DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
-            #                 valid_loop, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
-            #                     DLA_result, S, question_A, user_input, question_text
-            #                 )
-            #     # Calculate the reward for this question based on scores
-            #     all_score = self.question_lib[str(S)][str(question_A)]["score"]
-            #     if not all_score:
-            #         question_openai_res = 0.0
-            #         # Debug log: if score is still empty after answer, print S, question_A, DLA_result for troubleshooting
-            #         logging.debug(f"[RL DEBUG] Empty score after answer: S={S}, question_A={question_A}, DLA_result={DLA_result}")
-            #     else:
-            #         question_openai_res = np.mean(all_score)
-            #     # Get the next state and reward from the environment
-            #     question_S_, question_R = get_env_feedback(
-            #         question_S, question_A, question_openai_res, DLA_terminate, question_mask
-            #     )
-            #     question_reward.append(question_R)
-            #     # Q-learning update for this question's Q-table
-            #     q_predict = question_q_table.loc[question_S, question_A]
-            #     if question_S_ != 'terminal':
-            #         q_target = question_R + GAMMA * question_q_table.iloc[question_S_, :].max()
-            #     else:
-            #         q_target = question_R
-            #         is_terminated = True
-            #     new_question_q_table.loc[question_S, question_A] += ALPHA * (q_target - q_predict)
-            #     question_S = question_S_
-            #     # If the DLA process signals termination, end the loop
-            #     if DLA_terminate == 1:
-            #         logger.info(f"Question RL loop for item S={S} terminated by DLA signal.")
-            #         is_terminated = True
-            # # Save updated Q-table and mask for this item
-            # self.all_question_q_table[S] = new_question_q_table.copy()
-            # self.all_question_mask[S] = question_mask
-        else:
-            # If only one question for this item, ask it directly
-            question_A = "1"
-            if len(self.question_lib[str(S)][str(question_A)]["score"]) == 0:
-                number_of_questions = len(self.question_lib[str(S)][str(question_A)]["question"])
-                choice_of_question = np.random.randint(number_of_questions)
-                question_text = self.question_lib[str(S)][str(question_A)]["question"][choice_of_question]
-                if np.random.uniform() > 0.95:
-                    question_text = generate_synonymous_sentences(question_text)
-                question_text_ask = self.last_question + "  " + question_text
-                log_question(question_text_ask)
-                _ , user_input = get_answer()
-                DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
-                valid, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
-                    DLA_result, S, question_A, user_input, question_text
-                )
-                if valid == 0 and DLA_terminate == 0:
-                    valid_loop = 0
-                    while valid_loop < 1:
-                        log_question(question_text_ask)
-                        _ , user_input = get_answer()
-                        DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
-                        valid_loop, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
-                            DLA_result, S, question_A, user_input, question_text
-                        )
-            all_score = self.question_lib[str(S)][str(question_A)]["score"]
-            question_openai_res = np.mean(all_score) if all_score else 0.0
-            question_reward.append(question_openai_res)
+        # If there is only one question for this item, ask it directly
+        question_A = "1"
+        # Check if the score list for this question is empty (i.e., not answered yet)
+        if len(self.question_lib[str(S)][str(question_A)]["score"]) == 0:
+            # Get the number of available question variants for this item
+            number_of_questions = len(self.question_lib[str(S)][str(question_A)]["question"])
+            # Randomly select one question variant to ask
+            choice_of_question = np.random.randint(number_of_questions)
+            question_text = self.question_lib[str(S)][str(question_A)]["question"][choice_of_question]
+            # With probability, generate a synonymous version of the question
+            if np.random.uniform() < 0.95:
+                question_text = generate_synonymous_sentences(question_text)
+            # Concatenate the last question (context) with the current question
+            question_text_ask = self.last_question + "  " + question_text
+            # Log the question being asked
+            log_question(question_text_ask)
+            # Get user input for the question
+            _ , user_input = get_answer()
+            # Classify the user response into DLA result segments
+            DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
+            # Evaluate the result and update state
+            valid, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
+                DLA_result, S, question_A, user_input, question_text
+            )
+            # If the answer is invalid and not terminated, keep asking until valid or terminated
+            if valid == 0 and DLA_terminate == 0:
+                valid_loop = 0
+                while valid_loop < 1:
+                    # Log and ask the same question again
+                    log_question(question_text_ask)
+                    _ , user_input = get_answer()
+                    DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
+                    valid_loop, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
+                        DLA_result, S, question_A, user_input, question_text
+                    )
+        # Retrieve all scores for this question after answering
+        all_score = self.question_lib[str(S)][str(question_A)]["score"]
+        # Calculate the mean score if available, otherwise set to 0.0
+        question_openai_res = np.mean(all_score) if all_score else 0.0
+        # Append the result to the question reward list
+        question_reward.append(question_openai_res)
 
         # Return the total reward, termination flag, and last question
         logger.info(f"Finished question RL loop for item S={S}. Total reward: {float(sum(question_reward))}, DLA_terminate: {int(DLA_terminate)}")

@@ -12,12 +12,8 @@ from src.utils.text_generators import (
 )
 
 # Set up logger for this module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-if not logger.handlers:
-    _ch = logging.StreamHandler()
-    _ch.setLevel(logging.INFO)
-    logger.addHandler(_ch)
+from src.utils.log_util import get_logger
+logger = get_logger("Questioner")
 
 def classify_segments(user_segments: List[str]) -> List[Tuple[str, int]]:
     """

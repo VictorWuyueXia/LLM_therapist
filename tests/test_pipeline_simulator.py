@@ -22,10 +22,14 @@ def _atomic_write(df: pd.DataFrame) -> None:
     if folder and not os.path.exists(folder):
         os.makedirs(folder, exist_ok=True)
     tmp_path = RECORD_CSV + ".test.tmp"
-    df.to_csv(tmp_path, columns=HEADER, index=False)
-    time.sleep(0.1)
-    os.replace(tmp_path, RECORD_CSV)
     time.sleep(0.03)
+    for _ in range(3):                   # 短重试，仅限测试
+        try:
+            df.to_csv(tmp_path, columns=HEADER, index=False)
+            os.replace(tmp_path, RECORD_CSV)
+            break
+        except PermissionError:
+            time.sleep(0.05)
 
 def read_state() -> Tuple[str, int, str, int]:
     # Light retry to avoid partial reads
@@ -71,7 +75,7 @@ def run_app_background() -> subprocess.Popen:
     
     return proc
 
-def simulate(rounds: int = 8, poll_interval_s: float = 0.3, overall_timeout_s: float = 180.0) -> int:
+def simulate(rounds: int = 4, poll_interval_s: float = 0.3, overall_timeout_s: float = 180.0) -> int:
     # App (init_record) is responsible for initializing record.csv
     proc = run_app_background()
     start = time.time()

@@ -5,11 +5,8 @@ import logging
 from openai import OpenAI
 from src.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
-logger = logging.getLogger(__name__)
-if not logger.handlers:
-    _ch = logging.StreamHandler()
-    _ch.setLevel(logging.DEBUG)
-    logger.addHandler(_ch)
+from src.utils.log_util import get_logger
+logger = get_logger("TextGenerators")
 
 # Set OpenAI API key from environment variable for security (do not hardcode)
 _api_key = os.environ.get("OPENAI_API_KEY")

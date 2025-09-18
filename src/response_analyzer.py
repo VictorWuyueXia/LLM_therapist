@@ -13,12 +13,8 @@ if not _api_key:
 client = OpenAI(api_key=_api_key)
 
 # Set up logger for this module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-if not logger.handlers:
-    _ch = logging.StreamHandler()
-    _ch.setLevel(logging.DEBUG)
-    logger.addHandler(_ch)
+from src.utils.log_util import get_logger
+logger = get_logger("ResponseAnalyzer")
 
 # === Prompt templates for OpenAI API ===
 
