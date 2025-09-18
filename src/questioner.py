@@ -2,8 +2,8 @@ from typing import List, Tuple, Dict, Any
 
 import logging
 
-from scripts.utils.response_bridge import get_openai_resp
-from scripts.utils.text_generators import (
+from src.utils.response_bridge import get_openai_resp
+from src.utils.text_generators import (
     generate_change,
     generate_change_positive,
     generate_change_negative,

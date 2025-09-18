@@ -1,9 +1,9 @@
-# scripts/text_generators.py
+# src/text_generators.py
 
 import os
 import logging
 from openai import OpenAI
-from scripts.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+from src.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:

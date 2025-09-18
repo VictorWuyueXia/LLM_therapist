@@ -1,5 +1,5 @@
 import re
-from scripts.response_analyzer import classify_dimension_and_score
+from src.response_analyzer import classify_dimension_and_score
 
 def get_openai_resp(user_input):
     lower = [t.lower() for t in user_input.replace(".", " ").replace(",", " ").replace("?", " ").split()[:5]]

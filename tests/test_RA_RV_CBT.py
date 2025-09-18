@@ -5,13 +5,13 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from scripts.response_analyzer import classify_dimension_and_score
-from scripts.utils.response_bridge import get_openai_resp
-from scripts.questioner import classify_segments, evaluate_result_core
-from scripts.utils.io_question_lib import load_question_lib
-from scripts.config_loader import QUESTION_LIB_FILENAME
-from scripts.CBT import stage1_guide
-from scripts.utils.io_record import init_record, log_question, get_answer, get_resp_log
+from src.response_analyzer import classify_dimension_and_score
+from src.utils.response_bridge import get_openai_resp
+from src.questioner import classify_segments, evaluate_result_core
+from src.utils.io_question_lib import load_question_lib
+from src.utils.config_loader import QUESTION_LIB_FILENAME
+from src.CBT import stage1_guide
+from src.utils.io_record import init_record, log_question, get_answer, get_resp_log
 
 
 def main():

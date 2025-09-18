@@ -6,7 +6,7 @@ import numpy as np
 import os
 import pandas as pd
 
-from scripts.utils.config_loader import (
+from src.utils.config_loader import (
     ITEM_N_STATES,
     NUMBER_QUESTIONS,
     GAMMA,
@@ -15,25 +15,25 @@ from scripts.utils.config_loader import (
     SUBJECT_ID,
     DATA_DIR,
 )
-from scripts.utils.io_question_lib import load_question_lib, save_question_lib, generate_results
-from scripts.utils.io_record import log_question, get_answer, get_resp_log, init_record
-from scripts.utils.rl_qtables import (
+from src.utils.io_question_lib import load_question_lib, save_question_lib, generate_results
+from src.utils.io_record import log_question, get_answer, get_resp_log, init_record
+from src.utils.rl_qtables import (
     initialize_q_table,
     choose_action,
     get_env_feedback,
     initialize_question_mask,
     initialize_question_table,
 )
-from scripts.utils.response_bridge import get_openai_resp
-from scripts.utils.text_generators import (
+from src.utils.response_bridge import get_openai_resp
+from src.utils.text_generators import (
     generate_change,
     generate_change_positive,
     generate_change_negative,
     generate_synonymous_sentences,
     generate_therapist_chat,
 )
-from scripts.utils.log_util import get_logger
-from scripts.questioner import classify_segments, evaluate_result_core
+from src.utils.log_util import get_logger
+from src.questioner import classify_segments, evaluate_result_core
 
 logger = get_logger("HandlerRL")
 

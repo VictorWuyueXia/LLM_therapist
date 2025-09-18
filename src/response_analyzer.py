@@ -1,9 +1,9 @@
-# scripts/response_analyzer.py
+# src/response_analyzer.py
 
 import os
 import logging
 from openai import OpenAI
-from scripts.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+from src.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
 # Retrieve OpenAI API key from environment variable; fail fast if not set
 _api_key = os.environ.get("OPENAI_API_KEY")

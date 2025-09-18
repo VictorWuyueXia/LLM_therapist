@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from scripts.utils.config_loader import ITEM_N_STATES, ITEM_IMPORTANCE, EPSILON, GAMMA, ALPHA
+from src.utils.config_loader import ITEM_N_STATES, ITEM_IMPORTANCE, EPSILON, GAMMA, ALPHA
 
 def build_q_table(n_states, actions):
     """
