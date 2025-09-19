@@ -50,7 +50,7 @@ def generate_synonymous_sentences(question_text):
         max_tokens=OPENAI_MAX_TOKENS,
     )
     results = response.choices[0].message.content
-    logger.debug(response.choices[0].message.content)
+    logger.info(f"generate_synonymous_sentences: {response.choices[0].message.content}")
     return results
 
 def generate_prompt_therapist(user_input):
@@ -86,7 +86,7 @@ def generate_therapist_chat(user_input):
         temperature=OPENAI_TEMPERATURE,
         max_tokens=OPENAI_MAX_TOKENS,
     )
-    logger.debug(response.choices[0].message.content)
+    logger.info(f"generate_therapist_chat: {response.choices[0].message.content}")
     result = response.choices[0].message.content
     return result
 

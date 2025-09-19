@@ -8,12 +8,9 @@ if not _api_key:
     raise RuntimeError("OPENAI_API_KEY is not set in environment")
 client = OpenAI(api_key=_api_key)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-if not logger.handlers:
-    _ch = logging.StreamHandler()
-    _ch.setLevel(logging.DEBUG)
-    logger.addHandler(_ch)
+# Set up logger for this module
+from src.utils.log_util import get_logger
+logger = get_logger("CBT")
 
 REASONER_CBT_STAGE1_PROMPT = '''You are an AI assistant who has rich psychology and mental health commonsense knowledge and strong reasoning abilities.
 You are trying to justify if the patient is effectively going through and responding to cognitive behavioural therapy (CBT) questions.
