@@ -28,19 +28,19 @@ The wired files realize the following workflow:
                 4.5.3.2.1 Do 4.5.2.1-4.5.3.1 again. If still not valid, continue looping 4.5
     4.6 RL_handler updates Q table based on the collection of {Dimension, Score} pairs (Scores are the rewards for state Dimensions) for all Segments
     4.7 RL_handler marks the Dimensions in {Dimension, Score} pairs as asked, and marks the Dimension chosen in 4.1 as asked
-5. CBT uses Openai LLM to read the full conversation history and POSTs the User a summary of the conversation
-/*
-6. CBT uses Openai LLM to POST the User to choose on a Dimension to work on among those recieved Scores=2, if there are any, and GETs the User's choice
-    6.1 If there are no Dimensions to work on, jump to 8
-    6.2 If User responds "stop", jump to 8
-    6.3 If User's response contains number or word matching the Dimension label, choose the Dimension
-*/
+5. CBT uses Openai LLM to read the full conversation history and POSTs the User a summary of the conversation, and asks the User to choose a Dimension to work on among those recieved Scores=2, if there are any.
+    5.1 If there are no Dimensions to work on, jump to 8
+6. CBT Gets the User's choice
+    6.1 If User responds "stop", jump to 8
+    6.2 If User's response contains number or dword matching the Dimension label, choose the Dimension
+    6.3 If User's response contains a word not matching the Dimension label, use Openai LLM to ask the User to re-try the Response, but only re-try once
+7. CBT's Questioner uses Openai LLM to generate questions for stage_1 objective
+    7.1 Reasoner uses Openai LLM to evaluate the user’s response for its validity
+        7.1.1 If valid, CaiTI progresses to the next stage
+        7.1.2 If not, the Guide uses Openai LLM to aid the user in crafting a valid response by identifying issues in the current response and suggesting possible improvements for a valid answer.
+            7.1.2.1 Only re-try twice. If still not valid, conclude the CBT process and CBT POSTs that the user seek professional assistance for a more effective and valid CBT experience.
+8. RL_handler records the conversation history in a file bases on test subject ID and time, then conlcude the session.
 
-
-    4.6 Questioner marks all Dimensions that appeared in {Dimension, Score} pairs for all Segments as asked, and marks the Dimension chosen in 4.1 as asked
-
-    until all are asked or recieved response containing "stop"
-   3.3 Questioner marks the item as asked
 
    There should be dedicated util modules for atomic I/O (with wait time and multi-try for each I/O)
    There should be dedicated dedicated modules for LLM API operations

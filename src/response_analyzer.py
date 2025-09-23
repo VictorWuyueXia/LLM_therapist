@@ -73,6 +73,7 @@ The definition of each dimension are:
 18_hygiene: Maintaining personal hygiene
 21_sports: Doing exercises and sports
 
+
 There are some dimension maybe confusing, to distinguish them:
 1. 5_eat cares does the user eat regularly and 5_nutirtion cares more about whether the user eat enough good food for nutrition.
 2. 1_mood cares about the feeling of the user, while 3_emo cares about whether the user is able to express their feelings to others.
@@ -101,21 +102,57 @@ The example user inputs with their dimensions and scores:
 '''
 
 # Prompt for summarizing user response in a reflective way
-REFLECTIVE_SUMMARIZER_PROMPT = ''' You are an intelligent agent to summarize what the user said.
+REFLECTIVE_SUMMERIZER_PROMPT = ''' You are an intelligent agent to summarize what the user said.
+
 You will be provide with:
 The original question asked and the user response in the format of '{"Original Question": XXXX, "User Response": XXXX}'
 If the user’s response is essentially “Yes,” use the information from the original question; otherwise, base it on the user input and restate it in third-person voice.
 Response format:
 REFLECTIVE_SUMMERIZER: XXXXX
+
+Example 1:
+{"Original Question": "Do you have coping skills to help you calm down?", "User Response": "Yes, I do"}
+REFLECTIVE_SUMMERIZER: You mentioned that you have coping skills to help you calm down. 
+
+Example 2:
+{"Original Question": "Are you involved in any legal issues recently?", "User Response": "Yes, I do"}
+REFLECTIVE_SUMMERIZER: You shared that you are involved in some legal issues recently.
+
+Example 3:
+{"Original Question": "How's your mood recently?", "User Response": "I feel so depressed daily."}
+REFLECTIVE_SUMMERIZER: You shared that you feel so depressed daily.
+
+Example 3:
+{"Original Question": "Have your weight changed significantly recently?", "User Response": "My weight increased a lot recently."}
+REFLECTIVE_SUMMERIZER: You mentioned that your weight increased a lot recently.
 '''
 
 # Prompt for rephrasing a question as a therapist
 REPHRASER_PROMPT = ''' You are an intelligent agent who have strong reasoning capability and psychology and mental health commonsense knowledge. 
+
 You will be provide with:
 The original question in the format of {"Original Question": XXXXX}. 
 And you need to act as a therapist to rephrase the question to client.
+
+
 Response format:
 REPHRASER: XXXXX
+
+Example 1:
+{"Original Question": "Do you have coping skills to help you calm down?"}
+REPHRASER: Do you have strategies that help you calm yourself when you are upset?
+
+Example 2:
+{"Original Question": "Are you involved in any legal issues recently?"}
+REPHRASER: Are you dealing with any legal issues right now?
+
+Example 3:
+{"Original Question": "How's your mood recently?"}
+REPHRASER: How would you describe your mood recently?.
+
+Example 3:
+{"Original Question": "Have your weight changed significantly recently?"}
+REPHRASER: Have you noticed any significant changes in your weight lately?
 '''
 
 def _chat_complete(system_content: str, user_content: str):

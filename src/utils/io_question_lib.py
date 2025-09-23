@@ -18,6 +18,8 @@ def generate_results(
     notes_file: str = NOTES_FILE
 ):
     os.makedirs(os.path.dirname(report_file), exist_ok=True)
+    os.makedirs(os.path.dirname(notes_file), exist_ok=True)
+
     rows = []
     for i in range(1, len(question_lib) + 1):
         for ind in range(1, len(question_lib[str(i)]) + 1):
@@ -26,10 +28,15 @@ def generate_results(
                 question_lib[str(i)][str(ind)]["score"],
                 question_lib[str(i)][str(ind)]["notes"]
             ])
-    with open(report_file, "w", newline="", encoding="utf-8") as f:
+
+    # atomic write for report_file
+    _tmp_report = report_file + ".tmp"
+    with open(_tmp_report, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(['Item Label', 'Score', 'Notes'])
         w.writerows(rows)
+    os.replace(_tmp_report, report_file)
+
     rows_new = []
     for rec in new_response:
         try:
@@ -47,9 +54,11 @@ def generate_results(
                 rec["DLA_result"],
                 rec["User_input"]
             ])
-    with open(notes_file, "w", newline="", encoding="utf-8") as f:
+
+    # atomic write for notes_file
+    _tmp_notes = notes_file + ".tmp"
+    with open(_tmp_notes, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(['Item', "question", "Original_question", "DLA_result", "User_input", "User_comment"])
         w.writerows(rows_new)
-
-
+    os.replace(_tmp_notes, notes_file)

@@ -5,6 +5,7 @@ from typing import Tuple, Dict, Any
 import numpy as np
 import os
 import pandas as pd
+import re
 
 from src.utils.config_loader import (
     ITEM_N_STATES,
@@ -35,6 +36,7 @@ from src.utils.text_generators import (
 from src.questioner import classify_segments, evaluate_result_core
 from src.reflection_validation import rv_reasoner, rv_guide, rv_validation
 from src.CBT import (
+    stage0_prompter,
     stage1_reasoner, stage2_reasoner, stage3_reasoner,
     stage1_guide, stage2_guide, stage3_guide,
 )
@@ -112,7 +114,7 @@ class HandlerRL:
             original_resp = user_input[0] if user_input else ""
 
             logger.info(f"Running ReflectionValidation reasoner for topic '{topic}'.")
-            rv_decision_raw = rv_reasoner(topic, original_resp, follow_up)
+            rv_decision_raw = rv_reasoner(topic, original_question_asked, original_resp, follow_up)
             # Simple parsing: extract '0/1'（no try/except, error directly thrown）
             rv_decision_token = "0" if "0" in rv_decision_raw else "1"
             logger.info(f"ReflectionValidation decision: {rv_decision_token}")
@@ -123,34 +125,18 @@ class HandlerRL:
             if rv_decision_token == "1":
                 logger.info("Follow-up not related, generating guidance and recollecting follow-up.")
                 follow_up_0 = follow_up
-                rv_guide_text = rv_guide(topic, original_resp, follow_up)
+                rv_guide_text = rv_guide(topic, original_question_asked, original_resp, follow_up)
                 log_question(rv_guide_text)
                 follow_up = get_resp_log()
 
             # Empathic validation
             logger.info("Running ReflectionValidation empathic validation.")
-            rv_validation_text = rv_validation(topic, original_resp, follow_up)
-
-            # Generate therapist response
+            rv_validation_text = rv_validation(topic, original_question_asked, original_resp, follow_up)
+            
+            # Generate therapist response (store as context, do not prompt user)
             logger.info("Generating therapist response.")
             therapist_resp = generate_therapist_chat((last_q + " " + follow_up).strip())
-            log_question(therapist_resp)
-            self.last_question = therapist_resp
-            
-            # === CBT three stages（no add interaction, only generate and record） ===
-            # select statement for CBT（use user's follow_up）
-            statement = follow_up.strip()
-            cbt_stage1_unhelpful = stage1_guide(statement)
-            cbt_stage1_decision_raw = stage1_reasoner(statement, cbt_stage1_unhelpful)
-            cbt_stage1_decision = "1" if "1" in str(cbt_stage1_decision_raw) else "0"
-
-            cbt_stage2_challenge = stage2_guide(statement, cbt_stage1_unhelpful)
-            cbt_stage2_decision_raw = stage2_reasoner(statement, cbt_stage1_unhelpful, cbt_stage2_challenge)
-            cbt_stage2_decision = "1" if "1" in str(cbt_stage2_decision_raw) else "0"
-
-            cbt_stage3_reframe = stage3_guide(statement, cbt_stage1_unhelpful, cbt_stage2_challenge)
-            cbt_stage3_decision_raw = stage3_reasoner(statement, cbt_stage1_unhelpful, cbt_stage2_challenge, cbt_stage3_reframe)
-            cbt_stage3_decision = "1" if "1" in str(cbt_stage3_decision_raw) else "0"
+            self.last_question = ""
             
             # Record notes (expand RV fields)
             logger.info("Recording notes for this question/response.")
@@ -162,13 +148,7 @@ class HandlerRL:
                 ("rv_guide: " + rv_guide_text) if rv_guide_text else "rv_guide: ",
                 "followup_resp_1: " + follow_up if follow_up_0 else "followup_resp_1: "
                 "rv_validation: " + rv_validation_text,
-                "therapist_resp: " + therapist_resp,
-                "cbt_stage1_unhelpful: " + cbt_stage1_unhelpful,
-                "cbt_stage1_decision: " + cbt_stage1_decision,
-                "cbt_stage2_challenge: " + cbt_stage2_challenge,
-                "cbt_stage2_decision: " + cbt_stage2_decision,
-                "cbt_stage3_reframe: " + cbt_stage3_reframe,
-                "cbt_stage3_decision: " + cbt_stage3_decision,
+                "therapist_resp: " + therapist_resp
             ]
             self.question_lib[str(S)][str(question_A)]["notes"].append(note_resp)
             
@@ -196,7 +176,7 @@ class HandlerRL:
             if np.random.uniform() < 0.95:
                 question_text = generate_synonymous_sentences(question_text)
             # Concatenate the last question (context) with the current question
-            question_text_ask = self.last_question + "  " + question_text
+            question_text_ask = question_text
             # Log the question being asked
             log_question(question_text_ask)
             # Get user input for the question
@@ -207,15 +187,17 @@ class HandlerRL:
             valid, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
                 DLA_result, S, question_A, user_input, question_text
             )
-            # If the answer is invalid and not terminated, keep asking until valid or terminated
+            # If the answer is invalid and not terminated, retry once only when classification failed (NA/empty)
             if valid == 0 and DLA_terminate == 0:
-                valid_loop = 0
-                while valid_loop < 1:
-                    # Log and ask the same question again
+                na_only = (not DLA_result) or all(
+                    (isinstance(sc, int) and sc == 99) or (lbl == "NA")
+                    for (lbl, sc) in DLA_result
+                )
+                if na_only:
                     log_question(question_text_ask)
                     _ , user_input = get_answer()
                     DLA_result = [[label, score] for (label, score) in classify_segments(user_input)]
-                    valid_loop, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
+                    valid, DLA_terminate, self.last_question, self.question_lib = self.evaluate_result(
                         DLA_result, S, question_A, user_input, question_text
                     )
         # Retrieve all scores for this question after answering
@@ -228,6 +210,196 @@ class HandlerRL:
         # Return the total reward, termination flag, and last question
         logger.info(f"Finished question RL loop for item S={S}. Total reward: {float(sum(question_reward))}, DLA_terminate: {int(DLA_terminate)}")
         return float(sum(question_reward)), int(DLA_terminate), self.last_question
+
+    def run_cbt(self):
+        """
+        Run CBT stages 0-3 after screening is finished or user said stop.
+        Stage 0: ask user to choose a dimension with score=2 to work on.
+        Stages 1-3: unhelpful thoughts -> challenge -> reframe, with reasoning and guidance.
+        """
+        logger.info("Starting CBT flow (stages 0-3).")
+        # 0) Collect dimensions with score=2
+        candidates = []  # list of (idx, i, j, label)
+        idx = 1
+        for i in range(1, len(self.question_lib) + 1):
+            for j in range(1, len(self.question_lib[str(i)]) + 1):
+                entry = self.question_lib[str(i)][str(j)]
+                if any((s == 2) for s in entry.get("score", [])):
+                    candidates.append((idx, i, j, entry["label"]))
+                    idx += 1
+
+        if not candidates:
+            logger.info("No dimensions with score=2. Skipping CBT.")
+            log_question("We do not have a dimension at score 2 to work on today. We will conclude here.")
+            return
+
+        # Build a brief 'history' listing choices for stage0_prompter
+        history_lines = ["DIMENSIONS WITH SCORE=2:"]
+        for k, _, _, lbl in candidates:
+            history_lines.append(f"{k}) {lbl}")
+        history = "\n".join(history_lines)
+
+        # Stage 0: ask the user to choose a dimension
+        q0 = stage0_prompter(history)
+        q0_clean = q0.strip()
+        if q0_clean.lower().startswith("question:"):
+            q0_clean = q0_clean.split(":", 1)[1].strip()
+        log_question(q0_clean)
+        resp = get_resp_log()
+        if isinstance(resp, str) and resp.strip().lower().find("stop") != -1:
+            logger.info("User requested stop at CBT stage 0.")
+            return
+
+        def _pick_candidate(answer: str):
+            ans = str(answer).strip().lower()
+            # by number in label, e.g., DLA_3_talk -> 3
+            m = re.findall(r"\d+", ans)
+            if m:
+                n = int(m[0])
+                for (_, i0, j0, lbl0) in candidates:
+                    m2 = re.search(r"DLA_(\d+)_", lbl0, flags=re.IGNORECASE)
+                    if m2 and int(m2.group(1)) == n:
+                        return (i0, j0, lbl0)
+            # by label keyword (tail), e.g., 'talk'
+            for (_, i0, j0, lbl0) in candidates:
+                parts = lbl0.split("_", 2)
+                tail = parts[2] if len(parts) >= 3 else lbl0
+                if tail.lower() in ans or lbl0.lower() in ans:
+                    return (i0, j0, lbl0)
+            return None
+
+        chosen = _pick_candidate(resp)
+        if chosen is None:
+            # one retry to clarify
+            opts = "; ".join([f"{k}) {lbl}" for (k, _, _, lbl) in candidates])
+            log_question(f"Please choose ONE by number or label among: {opts}")
+            resp = get_resp_log()
+            if isinstance(resp, str) and resp.strip().lower().find("stop") != -1:
+                logger.info("User requested stop at CBT stage 0 retry.")
+                return
+            chosen = _pick_candidate(resp)
+            if chosen is None:
+                logger.info("Failed to parse user choice for CBT stage 0. Exit CBT.")
+                log_question("I could not determine your choice. We will stop CBT for now.")
+                return
+
+        i_sel, j_sel, label_sel = chosen
+        logger.info(f"CBT dimension chosen: [{label_sel}] at ({i_sel},{j_sel}).")
+
+        # Stage 1: collect statement and unhelpful thoughts
+        log_question(f"For the dimension '{label_sel}', please briefly describe the situation you want to work on (1-3 sentences).")
+        statement = get_resp_log()
+        if isinstance(statement, str) and statement.strip().lower().find("stop") != -1:
+            logger.info("User requested stop at CBT before stage 1 question.")
+            return
+
+        log_question("Can you try to identify any unhelpful thoughts you have that contribute to this situation?")
+        unhelpful = get_resp_log()
+        if isinstance(unhelpful, str) and unhelpful.strip().lower().find("stop") != -1:
+            logger.info("User requested stop at CBT stage 1.")
+            return
+
+        # Reason and guide up to two retries
+        dec1_raw = stage1_reasoner(statement, unhelpful)
+        dec1 = "0" if "0" in dec1_raw else "1"
+        retry = 0
+        while dec1 == "1" and retry < 2:
+            guide1 = stage1_guide(statement)
+            log_question(guide1)
+            log_question("Please provide your UNHELPFUL_THOUGHTS again, in one sentence.")
+            unhelpful = get_resp_log()
+            if isinstance(unhelpful, str) and unhelpful.strip().lower().find("stop") != -1:
+                logger.info("User requested stop during CBT stage 1 retry.")
+                return
+            dec1_raw = stage1_reasoner(statement, unhelpful)
+            dec1 = "0" if "0" in dec1_raw else "1"
+            retry += 1
+        if dec1 == "1":
+            log_question("It seems difficult to identify the unhelpful thoughts right now. Let's pause CBT and revisit later.")
+            # record brief CBT notes
+            self.question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+                f"CBT_dimension: {label_sel}",
+                f"CBT_statement: {statement}",
+                f"CBT_unhelpful_thoughts: {unhelpful}",
+                "CBT_stage: 1_failed"
+            ])
+            return
+
+        # Stage 2: challenge the unhelpful thoughts
+        log_question("Now, how could you challenge those unhelpful thoughts? Please write a brief challenge.")
+        challenge = get_resp_log()
+        if isinstance(challenge, str) and challenge.strip().lower().find("stop") != -1:
+            logger.info("User requested stop at CBT stage 2.")
+            return
+
+        dec2_raw = stage2_reasoner(statement, unhelpful, challenge)
+        dec2 = "0" if "0" in dec2_raw else "1"
+        retry = 0
+        while dec2 == "1" and retry < 2:
+            guide2 = stage2_guide(statement, unhelpful)
+            log_question(guide2)
+            log_question("Please try to CHALLENGE the unhelpful thoughts again, in one sentence.")
+            challenge = get_resp_log()
+            if isinstance(challenge, str) and challenge.strip().lower().find("stop") != -1:
+                logger.info("User requested stop during CBT stage 2 retry.")
+                return
+            dec2_raw = stage2_reasoner(statement, unhelpful, challenge)
+            dec2 = "0" if "0" in dec2_raw else "1"
+            retry += 1
+        if dec2 == "1":
+            log_question("Challenging the thought seems difficult now. Let's pause CBT and revisit later.")
+            self.question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+                f"CBT_dimension: {label_sel}",
+                f"CBT_statement: {statement}",
+                f"CBT_unhelpful_thoughts: {unhelpful}",
+                f"CBT_challenge: {challenge}",
+                "CBT_stage: 2_failed"
+            ])
+            return
+
+        # Stage 3: reframe the thought
+        log_question("Finally, can you reframe the unhelpful thought into a more balanced, constructive one?")
+        reframe = get_resp_log()
+        if isinstance(reframe, str) and reframe.strip().lower().find("stop") != -1:
+            logger.info("User requested stop at CBT stage 3.")
+            return
+
+        dec3_raw = stage3_reasoner(statement, unhelpful, challenge, reframe)
+        dec3 = "0" if "0" in dec3_raw else "1"
+        retry = 0
+        while dec3 == "1" and retry < 2:
+            guide3 = stage3_guide(statement, unhelpful, challenge)
+            log_question(guide3)
+            log_question("Please REFRAME again in one or two sentences.")
+            reframe = get_resp_log()
+            if isinstance(reframe, str) and reframe.strip().lower().find("stop") != -1:
+                logger.info("User requested stop during CBT stage 3 retry.")
+                return
+            dec3_raw = stage3_reasoner(statement, unhelpful, challenge, reframe)
+            dec3 = "0" if "0" in dec3_raw else "1"
+            retry += 1
+        if dec3 == "1":
+            log_question("Reframing seems hard right now. Let's pause CBT and revisit later.")
+            self.question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+                f"CBT_dimension: {label_sel}",
+                f"CBT_statement: {statement}",
+                f"CBT_unhelpful_thoughts: {unhelpful}",
+                f"CBT_challenge: {challenge}",
+                f"CBT_reframe: {reframe}",
+                "CBT_stage: 3_failed"
+            ])
+            return
+
+        # Success
+        self.question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+            f"CBT_dimension: {label_sel}",
+            f"CBT_statement: {statement}",
+            f"CBT_unhelpful_thoughts: {unhelpful}",
+            f"CBT_challenge: {challenge}",
+            f"CBT_reframe: {reframe}",
+            "CBT_stage: success"
+        ])
+        log_question("Great work today. We completed the CBT steps for this topic. Thank you for your effort.")
 
     def run(self):
         """
@@ -266,18 +438,26 @@ class HandlerRL:
                 is_terminated = True
                 save_filename = QUESTION_LIB_FILENAME.replace(".json", f"_{int(time.time())}.json")
                 save_question_lib(save_filename, self.question_lib)
-                log_question("Goodbye. We will do the screening in another time. 886")
-        # Save results if terminated
+                # log_question("Goodbye. We will do the screening in another time. 886")
+                logger.info("Goodbye. We will do the screening in another time. 886")        # Save results if terminated
         if is_terminated:
             logger.info("Session terminated. Saving question library and generating results.")
             save_filename = QUESTION_LIB_FILENAME.replace(".json", f"_{int(time.time())}.json")
             save_question_lib(save_filename, self.question_lib)
             
             # Save Q tables (in parallel with existing results)
+            logger.info("Saving Q tables.")
             qdir = os.path.join(DATA_DIR, "q_tables")
+            self.item_q_table = new_q_table
             if not os.path.exists(qdir):
                 os.makedirs(qdir, exist_ok=True)
             self.item_q_table.to_csv(os.path.join(qdir, f"item_qtable_{SUBJECT_ID}.csv"))
-    
+
+        # Run CBT after the screening loop concludes
+        self.run_cbt()
+        # Persist question_lib again to capture CBT notes
+        save_filename = QUESTION_LIB_FILENAME.replace(".json", f"_{int(time.time())}.json")
+        save_question_lib(save_filename, self.question_lib)
+
         # Generate final results for this session
         generate_results(self.question_lib, self.new_response)

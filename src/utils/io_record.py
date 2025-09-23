@@ -16,7 +16,7 @@ def _read():
     for _ in range(5):
         try:
             time.sleep(0.03)
-            return pd.read_csv(RECORD_CSV)
+            return pd.read_csv(RECORD_CSV, dtype={"Question": str, "Question_Lock": "int64", "Resp": str, "Resp_Lock": "int64"})
         except (EmptyDataError, FileNotFoundError, OSError) as e:
             last_exc = e
             time.sleep(0.05)
