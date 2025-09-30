@@ -10,7 +10,9 @@ data/libs
 # 忽略所有位置的 __pycache__ 文件夹
 __pycache__/
 **/__pycache__/
-# workplan.txt
+
+workplan.txt
+workflow.png
 src/tools/
 .cursorignore
 
