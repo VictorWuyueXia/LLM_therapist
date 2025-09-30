@@ -13,3 +13,7 @@ __pycache__/
 # workplan.txt
 src/tools/
 .cursorignore
+
+tests/
+_archive/
+data/
