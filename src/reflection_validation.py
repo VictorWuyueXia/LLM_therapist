@@ -3,14 +3,13 @@
 import os
 import logging
 from openai import OpenAI
-from src.utils.config_loader import OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+from src.utils.config_loader import OPENAI_BASE_URL, OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
 
 # Retrieve OpenAI API key from environment variable
 _api_key = os.environ.get("OPENAI_API_KEY")
 if not _api_key:
     raise RuntimeError("OPENAI_API_KEY is not set in environment")
-# Initialize OpenAI client with API key
-client = OpenAI(api_key=_api_key)
+client = OpenAI(api_key=_api_key, base_url=OPENAI_BASE_URL)
 
 # Set up logger for this module
 from src.utils.log_util import get_logger
@@ -137,17 +136,27 @@ def _chat_complete(system_content: str, user_content: str):
     """
     logger.info("Sending request to OpenAI API for chat completion.")
     logger.debug({"model": OPENAI_MODEL, "user": user_content[:200]})
-    resp = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=[
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": user_content},
-        ],
-        max_tokens=OPENAI_MAX_TOKENS,
-        temperature=OPENAI_TEMPERATURE,
-    )
-    logger.info("Received response from OpenAI API.")
-    return resp.choices[0].message.content
+    if "gpt-5" not in OPENAI_MODEL:
+        resp = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": user_content},
+            ],
+            max_tokens=OPENAI_MAX_TOKENS,
+            temperature=OPENAI_TEMPERATURE,
+        )
+        logger.info("Received response from OpenAI API.")
+        return resp.choices[0].message.content
+    else:
+        resp = client.responses.create(
+            model=OPENAI_MODEL,
+            reasoning={"effort": "low"},
+            instructions=system_content,
+            input=user_content,
+        )
+        logger.info("Received response from OpenAI API.")
+        return resp.output_text
 
 def rv_reasoner(topic: str, original_question: str, original_response: str, follow_up_response: str) -> str:
     """

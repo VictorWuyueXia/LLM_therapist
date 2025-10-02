@@ -42,9 +42,8 @@ def console_io_loop():
         # If a new question is available (locked), display it and get user input
         if int(df.loc[0, "Question_Lock"]) == 1:
             q = str(df.loc[0, "Question"])
-            print(f"\nQUESTION: {q}")
+            print(f"\nQUESTION: {q}", flush=True)
             print("Your answer: ", end="", flush=True)
-
             # Unlock the question so the main process can write the next one
             df.loc[0, "Question_Lock"] = 0
             _atomic_write_record(df)

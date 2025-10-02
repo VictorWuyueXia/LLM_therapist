@@ -40,6 +40,7 @@ GAMMA = float(RL["gamma"])
 ITEM_IMPORTANCE = RL["item_importance"]
 NUMBER_QUESTIONS = RL["number_questions"]
 
+OPENAI_BASE_URL = OPENAI.get("base_url", os.environ.get("OPENAI_BASE_URL", "https://us.api.openai.com/v1"))
 OPENAI_MODEL = OPENAI["model"]
 OPENAI_TEMPERATURE = float(OPENAI["temperature"])
 OPENAI_MAX_TOKENS = int(OPENAI["max_tokens"])

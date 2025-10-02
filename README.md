@@ -48,8 +48,6 @@ root/
 ├── data/                                       # Data & results (do not modify)
 │   ├── q_tables/
 │   └── results/
-├── tests/                                      # Unit/functional tests
-└── _archive/                                   # Historical notebooks/scripts
 ```
 
 ## Requirements & Setup
@@ -68,12 +66,6 @@ conda env update -f environment_upgradable.yml --prune
 OPENAI API key is needed for running this project. Configure as environment variables
 ```bash
 export OPENAI_API_KEY='<your-api-key>'
-```
-
-GPU selection can be controlled via `CUDA_VISIBLE_DEVICES`. By default, the project assumes GPUs 1,2,3 for heavy workloads.
-
-```bash
-export CUDA_VISIBLE_DEVICES=1,2,3
 ```
 
 ## Configuration
@@ -123,15 +115,8 @@ curl -sX POST 'http://127.0.0.1:8899/gpt' \
 Notes:
 
 - If you rely on GPUs, ensure `CUDA_VISIBLE_DEVICES=1,2,3` is set before execution.
-- Logs will print concise English status to terminal; see `src/utils/log_util.py` for configuration.
+- Logs will print status to terminal; see `src/utils/log_util.py` for configuration.
 
-## Testing
-
-Tests are under `tests/`. Run from the project root:
-
-```bash
-python tests/test_pipeline_simulator.py
-```
 
 ## Pipeline at a Glance
 
