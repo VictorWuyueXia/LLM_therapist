@@ -5,7 +5,7 @@ paths:
   # Use forward slashes or absolute Windows paths
   data_dir: "data"
   result_dir: "data/results"
-  question_lib_filename: "data/libs/question_lib_v4_${subject_id}.json"
+  question_lib_filename: "data/libs/question_lib_v4.json"
   report_file: "data/results/Report_${subject_id}.csv"
   notes_file: "data/results/Notes_${subject_id}.csv"
   logs_dir: "data/logs"

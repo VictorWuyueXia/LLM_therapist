@@ -1,18 +1,8 @@
 # src/text_generators.py
-
-import os
-import logging
-from openai import OpenAI
-from src.utils.config_loader import OPENAI_BASE_URL, OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+from src.utils.llm_client import llm_complete
 
 from src.utils.log_util import get_logger
 logger = get_logger("TextGenerators")
-
-# Set OpenAI API key from environment variable for security (do not hardcode)
-_api_key = os.environ.get("OPENAI_API_KEY")
-if not _api_key:
-    raise RuntimeError("OPENAI_API_KEY is not set in environment")
-client = OpenAI(api_key=_api_key, base_url=OPENAI_BASE_URL)
 
 # The following functions generate prompts and call OpenAI's API to generate various types of text transformations.
 # Each function is commented to explain its purpose and logic.
@@ -41,25 +31,10 @@ def generate_synonymous_sentences(question_text):
     """
     user_input = question_text
     
-    if "gpt-5" not in OPENAI_MODEL:
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "You generate synonymous sentences for a given text."},
-                {"role": "user", "content": generate_prompt_synonymous_sentences(user_input)},
-            ],
-            temperature=OPENAI_TEMPERATURE,
-            max_tokens=OPENAI_MAX_TOKENS,
-        )
-        raw = response.choices[0].message.content
-    else:
-        response = client.responses.create(
-            model=OPENAI_MODEL,
-            reasoning={"effort": "low"},
-            instructions="You generate synonymous sentences for a given text. Return only the rewritten sentence, without any prefixes.",
-            input=generate_prompt_synonymous_sentences(user_input),
-        )
-        raw = response.output_text
+    raw = llm_complete(
+        "You generate synonymous sentences for a given text. Return only the rewritten sentence, without any prefixes.",
+        generate_prompt_synonymous_sentences(user_input)
+    )
     results = raw.strip()
     lower = results.lower()
     if "answer:" in lower:
@@ -96,28 +71,12 @@ def generate_therapist_chat(user_input):
     """
     Use OpenAI API to generate a therapist-like response to the user's input.
     """
-    if "gpt-5" not in OPENAI_MODEL:
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "Chat with people as a therapist."},
-                {"role": "user", "content": generate_prompt_therapist(user_input)},
-            ],
-            temperature=OPENAI_TEMPERATURE,
-            max_tokens=OPENAI_MAX_TOKENS,
-        )
-        logger.info(f"generate_therapist_chat: {response.choices[0].message.content}")
-        result = response.choices[0].message.content
-        return result
-    else:
-        response = client.responses.create(
-            model=OPENAI_MODEL,
-            reasoning={"effort": "low"},
-            instructions="Chat with people as a therapist.",
-            input=generate_prompt_therapist(user_input),
-        )
-        logger.info(f"generate_therapist_chat: {response.output_text}")
-        return response.output_text
+    result = llm_complete(
+        "Chat with people as a therapist.",
+        generate_prompt_therapist(user_input)
+    )
+    logger.info(f"generate_therapist_chat: {result}")
+    return result
 
 def generate_prompt_change(user_input):
     """
@@ -141,28 +100,12 @@ def generate_change(user_input):
     """
     Use OpenAI API to convert a first-person sentence to a second-person sentence.
     """
-    if "gpt-5" not in OPENAI_MODEL:
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "Convert first-person to second-person statements."},
-                {"role": "user", "content": generate_prompt_change(user_input)},
-            ],
-            temperature=OPENAI_TEMPERATURE,
-            max_tokens=OPENAI_MAX_TOKENS,
-        )
-        logger.debug(response.choices[0].message.content)
-        resp = response.choices[0].message.content
-        return resp
-    else:
-        response = client.responses.create(
-            model=OPENAI_MODEL,
-            reasoning={"effort": "low"},
-            instructions="Convert first-person to second-person statements.",
-            input=generate_prompt_change(user_input),
-        )
-        logger.debug(response.output_text)
-        return response.output_text
+    resp = llm_complete(
+        "Convert first-person to second-person statements.",
+        generate_prompt_change(user_input)
+    )
+    logger.debug(resp)
+    return resp
 
 def generate_prompt_change_positive(user_input):
     """
@@ -186,28 +129,12 @@ def generate_change_positive(user_input):
     """
     Use OpenAI API to convert a question to a positive declarative sentence.
     """
-    if "gpt-5" not in OPENAI_MODEL:
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "Turn a question into a positive declarative sentence."},
-                {"role": "user", "content": generate_prompt_change_positive(user_input)},
-            ],
-            temperature=OPENAI_TEMPERATURE,
-            max_tokens=OPENAI_MAX_TOKENS,
-        )
-        logger.debug(response.choices[0].message.content)
-        resp = response.choices[0].message.content
-        return resp
-    else:
-        response = client.responses.create(
-            model=OPENAI_MODEL,
-            reasoning={"effort": "low"},
-            instructions="Turn a question into a positive declarative sentence.",
-            input=generate_prompt_change_positive(user_input),
-        )
-        logger.debug(response.output_text)
-        return response.output_text
+    resp = llm_complete(
+        "Turn a question into a positive declarative sentence.",
+        generate_prompt_change_positive(user_input)
+    )
+    logger.debug(resp)
+    return resp
 
 def generate_prompt_change_negative(user_input):
     """
@@ -231,25 +158,9 @@ def generate_change_negative(user_input):
     """
     Use OpenAI API to convert a question to a negative declarative sentence.
     """
-    if "gpt-5" not in OPENAI_MODEL:
-        response = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "Turn a question into a negative declarative sentence."},
-                {"role": "user", "content": generate_prompt_change_negative(user_input)},
-            ],
-            temperature=OPENAI_TEMPERATURE,
-            max_tokens=OPENAI_MAX_TOKENS,
-        )
-        logger.debug(response.choices[0].message.content)
-        resp = response.choices[0].message.content
-        return resp
-    else:
-        response = client.responses.create(
-            model=OPENAI_MODEL,
-            reasoning={"effort": "low"},
-            instructions="Turn a question into a negative declarative sentence.",
-            input=generate_prompt_change_negative(user_input),
-        )
-        logger.debug(response.output_text)
-        return response.output_text
+    resp = llm_complete(
+        "Turn a question into a negative declarative sentence.",
+        generate_prompt_change_negative(user_input)
+    )
+    logger.debug(resp)
+    return resp

@@ -1,15 +1,5 @@
 # src/response_analyzer.py
-
-import os
-import logging
-from openai import OpenAI
-from src.utils.config_loader import OPENAI_BASE_URL, OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
-
-# Retrieve OpenAI API key from environment variable; fail fast if not set
-_api_key = os.environ.get("OPENAI_API_KEY")
-if not _api_key:
-    raise RuntimeError("OPENAI_API_KEY is not set in environment")
-client = OpenAI(api_key=_api_key, base_url=OPENAI_BASE_URL)
+from src.utils.llm_client import llm_complete
 
 # Set up logger for this module
 from src.utils.log_util import get_logger
@@ -26,59 +16,66 @@ You will be provided with:
 Your goal is:
 To assign the user input with DIMENSION and SCORE.
 
-All dimension names are:
-1_weight, 1_mood, 1_medication, 1_care, 2_house, 3_talk, 3_emo, 4_safe, 4_risk, 5_sleep, 5_eat, 5_work, 5_work_dayoff,
-5_showup, 6_finance, 7_nutrition, 8_problem, 9_support, 9_family, 10_drug, 10_ciga, 10_alcohol, 11_hobbies, 11_creativity, 12_community, 
-13_support, 13_social, 14_sex, 14_comfortable, 14_protection, 15_productivity, 15_work_motivation, 16_coping, 17_sib, 17_arrest,17_legal, DLA_18_hygiene, DLA_21_sports
-Yes, No, Maybe, Question, Stop
+All dimension names are:{
+    weight, mood, medication, care, house, talk, emo, safe, risk, sleep, eat, work, work_dayoff,
+    showup, finance, nutrition, problem, support, family, drug, ciga, alcohol, hobbies, creativity, community, 
+    support, social, sex, comfortable, protection, productivity, work_motivation, coping, sib, arrest,legal, hygiene, sports, 
+    Yes, No, Maybe, Question, Stop
+}
 
 The definition of each dimension are:
-1_weight: Maintaining stable weight
-1_mood: Managing mood 
-1_medication: Taking medication as prescribed
-1_care: Participating primary and mental health care
-2_house: Organizing personal possessions and doing housework
-3_talk: Talking to other people
-3_emo: Expressing feelings to other people
-4_safe: Managing personal safety
-4_risk: Managing risk
-5_sleep: Following regular schedule for bedtime and sleeping enough
-5_eat: Maintaining regular schedule for eating
-5_work: Managing work/school
-5_work_dayoff: Having work-life balance
-5_showup: Showing up for appointments and obligations
-6_finance: Managing finance and items of value 
-7_nutrition: Getting adequate nutrition
-8_problem: Problem solving and decision making capability
-9_support: Family support
-9_family: Family relationship
-10_drug: Other substances abuse
-10_ciga: Tobacco abuse
-10_alcohol: Alcohol abuse
-11_hobbies: Enjoying personal choices for leisure activities
-11_creativity: Creativity
-12_community: Participation in community
-13_support: Support from social network
-13_social: Relationship with friends and colleagues
-14_sex: Active in Sex
-14_comfortable: Managing boundaries in close relationship
-14_protection: Managing sexual safety
-15_productivity: Productivity at work or school
-15_work_motivation: Motivation at work or school
-16_coping: Coping skills to de-stress
-17_sib: Exhibiting control over self-harming behavior
-17_arrest: Law-abiding
-17_legal: Managing legal issue
-18_hygiene: Maintaining personal hygiene
-21_sports: Doing exercises and sports
+weight: Maintaining stable weight
+mood: Managing mood 
+medication: Taking medication as prescribed
+care: Participating primary and mental health care
+house: Organizing personal possessions and doing housework
+talk: Talking to other people
+emo: Expressing feelings to other people
+safe: Managing personal safety
+risk: Managing risk
+sleep: Following regular schedule for bedtime and sleeping enough
+eat: Maintaining regular schedule for eating
+work: Managing work/school
+work_dayoff: Having work-life balance
+showup: Showing up for appointments and obligations
+finance: Managing finance and items of value 
+nutrition: Getting adequate nutrition
+problem: Problem solving and decision making capability
+support: Family support
+family: Family relationship
+drug: Other substances abuse
+ciga: Tobacco abuse
+alcohol: Alcohol abuse
+hobbies: Enjoying personal choices for leisure activities
+creativity: Creativity
+community: Participation in community
+support: Support from social network
+social: Relationship with friends and colleagues
+sex: Active in Sex
+comfortable: Managing boundaries in close relationship
+protection: Managing sexual safety
+productivity: Productivity at work or school
+work_motivation: Motivation at work or school
+coping: Coping skills to de-stress
+sib: Exhibiting control over self-harming behavior
+arrest: Law-abiding
+legal: Managing legal issue
+hygiene: Maintaining personal hygiene
+sports: Doing exercises and sports
+Yes: The user expressed acceptance, agreement, or affirmation to the question.
+No: The user expressed rejection, disagreement, or negation to the question.
+Maybe: The user expressed uncertainty, hesitation, or ambivalence about the question.
+Question: The user expressed a question or inquiry about the question.
+Stop: The user expressed a desire to end the conversation or terminate the interaction.
+
 
 
 There are some dimension maybe confusing, to distinguish them:
-1. 5_eat cares does the user eat regularly and 5_nutirtion cares more about whether the user eat enough good food for nutrition.
-2. 1_mood cares about the feeling of the user, while 3_emo cares about whether the user is able to express their feelings to others.
-3. 4_safe concerns the safety of users' lives, while 4_risk cares if the user is taking any risks. 
+1. eat cares does the user eat regularly and nutirtion cares more about whether the user eat enough good food for nutrition.
+2. mood cares about the feeling of the user, while emo cares about whether the user is able to express their feelings to others.
+3. safe concerns the safety of users' lives, while risk cares if the user is taking any risks. 
 
-If the user input is general response, such as “Yes”, “No”, “I don’t know”, “Stop”, and “I don’t understand your question”. The DIMENSION will be within [Yes, No, Maybe, Question, Stop], and the SCORE will be 0.
+If the user input is general response, such as “Sure!”, “Not really”, “I don’t know”, “I don’t understand your question”, “let us stop here”, or anything similar, the DIMENSION will be within [Yes, No, Maybe, Question, Stop], and the SCORE will be 0.
 
 The score ranges from 0 to 2, where:
 0 indicates that the user performs well in this dimension;
@@ -89,15 +86,15 @@ If the user input does not belong to any of these dimension, the "DIMENSION, SCO
 
 The example user inputs with their dimensions and scores: 
 {"in":"Yes, I do.", "res": "Yes, 0"}
-{"in":"My weight doesn't change.", "res": "1_weight, 0"}
-{"in":"I didn't measure my weight recently.", "res": "1_weight, 2"}
-{"in":"My weight has increased a lot these days.", "res": "1_weight, 2"}
-{"in":"I get some weight these days.", "res": "1_weight, 1"}
-{"in":"My emotions are out of my control.", "res": "1_mood, 2"}
-{"in":"I don't have a therapist.", "res": "1_care, 0"}
-{"in":"I don't have a psychiatrist.", "res": "1_care, 0"}
-{"in":"I haven't visited my prescriber for a while.", "res": "1_care, 1"}
-{"in":"I haven't gone to my case manager for a while.", "res": "1_care, 1"}
+{"in":"My weight doesn't change.", "res": "weight, 0"}
+{"in":"I didn't measure my weight recently.", "res": "weight, 2"}
+{"in":"My weight has increased a lot these days.", "res": "weight, 2"}
+{"in":"I get some weight these days.", "res": "weight, 1"}
+{"in":"My emotions are out of my control.", "res": "mood, 2"}
+{"in":"I don't have a therapist.", "res": "care, 0"}
+{"in":"I don't have a psychiatrist.", "res": "care, 0"}
+{"in":"I haven't visited my prescriber for a while.", "res": "care, 1"}
+{"in":"I haven't gone to my case manager for a while.", "res": "care, 1"}
 '''
 
 # Prompt for summarizing user response in a reflective way
@@ -156,38 +153,15 @@ REPHRASER: Have you noticed any significant changes in your weight lately?
 
 def _chat_complete(system_content: str, user_content: str):
     """
-    Send a chat completion request to OpenAI API with the given system and user content.
-    Returns the content of the first message in the response.
+    Unified LLM entry that delegates to llm_complete.
     """
-    logger.info("Sending request to OpenAI API for chat completion.")
-    logger.debug(f"Model: {OPENAI_MODEL}, User content preview: {user_content[:100]}")
-    if "gpt-5" not in OPENAI_MODEL:
-        resp = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": user_content},
-            ],
-            max_tokens=OPENAI_MAX_TOKENS,
-            temperature=OPENAI_TEMPERATURE,
-        )
-        logger.info("Received response from OpenAI API.")
-        return resp.choices[0].message.content
-    else:
-        resp = client.responses.create(
-            model=OPENAI_MODEL,
-            reasoning={"effort": "low"},
-            instructions=system_content,
-            input=user_content,
-        )
-        logger.info("Received response from OpenAI API.")
-        return resp.output_text
+    return llm_complete(system_content, user_content)
 
 def classify_dimension_and_score(user_input: str) -> str:
     """
     Classify user input into a dimension and score using the OpenAI API.
     Input: user_input (str) - any user response string.
-    Output: Raw model text, e.g., '1_weight, 2' or 'Yes, 0'.
+    Output: Raw model text, e.g., 'weight, 2' or 'Yes, 0'.
     """
     logger.info("Classifying user input for dimension and score.")
     logger.debug(f"User input: {user_input}")

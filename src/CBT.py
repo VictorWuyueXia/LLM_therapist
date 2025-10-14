@@ -1,15 +1,10 @@
-import os
-import logging
-from openai import OpenAI
-from src.utils.config_loader import OPENAI_BASE_URL, OPENAI_MODEL, OPENAI_TEMPERATURE, OPENAI_MAX_TOKENS
+import re
 
-_api_key = os.environ.get("OPENAI_API_KEY")
-if not _api_key:
-    raise RuntimeError("OPENAI_API_KEY is not set in environment")
-client = OpenAI(api_key=_api_key, base_url=OPENAI_BASE_URL)
+from src.utils.llm_client import llm_complete
 
 # Set up logger for this module
-from src.utils.log_util import get_logger
+from src.utils.log_util import get_logger, log_question
+from src.utils.io_record import get_resp_log
 logger = get_logger("CBT")
 
 
@@ -259,26 +254,7 @@ REFRAME: My ideas have value, and sharing them can contribute to the discussion.
 '''
 
 def _chat_complete(system_content: str, user_content: str):
-    logger.debug({"model": OPENAI_MODEL, "user": user_content[:200]})
-    if "gpt-5" not in OPENAI_MODEL:
-        resp = client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": user_content},
-            ],
-            max_tokens=OPENAI_MAX_TOKENS,
-            temperature=OPENAI_TEMPERATURE,
-        )
-        return resp.choices[0].message.content
-    else:
-        resp = client.responses.create(
-            model=OPENAI_MODEL,
-            reasoning={"effort": "low"},
-            instructions=system_content,
-            input=user_content,
-        )
-        return resp.output_text
+    return llm_complete(system_content, user_content)
 
 def stage0_prompter(history: str) -> str:
     payload = f"HISTORY: {history}"
@@ -317,5 +293,195 @@ __all__ = [
     "stage2_guide",
     "stage3_guide",
 ]
+
+def run_cbt(question_lib):
+    """
+    Run CBT stages 0-3 after screening is finished or user said stop.
+    Stage 0: ask user to choose a dimension with score=2 to work on.
+    Stages 1-3: unhelpful thoughts -> challenge -> reframe, with reasoning and guidance.
+    """
+    logger.info("Starting CBT flow (stages 0-3).")
+    # 0) Collect dimensions with score=2
+    candidates = []  # list of (idx, i, j, label)
+    idx = 1
+    for i in range(1, len(question_lib) + 1):
+        for j in range(1, len(question_lib[str(i)]) + 1):
+            entry = question_lib[str(i)][str(j)]
+            if any((s == 2) for s in entry.get("score", [])):
+                candidates.append((idx, i, j, entry["label"]))
+                idx += 1
+
+    if not candidates:
+        logger.info("No dimensions with score=2. Skipping CBT.")
+        log_question("We do not have a dimension at score 2 to work on today. We will conclude here.")
+        return
+
+    # Build a brief 'history' listing choices for stage0_prompter
+    history_lines = ["DIMENSIONS WITH SCORE=2:"]
+    for k, _, _, lbl in candidates:
+        history_lines.append(f"{k}) {lbl}")
+    history = "\n".join(history_lines)
+
+    # Stage 0: ask the user to choose a dimension
+    q0 = stage0_prompter(history)
+    q0_clean = q0.strip()
+    if q0_clean.lower().startswith("question:"):
+        q0_clean = q0_clean.split(":", 1)[1].strip()
+    log_question(q0_clean)
+    resp = get_resp_log()
+    if isinstance(resp, str) and resp.strip().lower().find("stop") != -1:
+        logger.info("User requested stop at CBT stage 0.")
+        return
+
+    def _pick_candidate(answer: str):
+        ans = str(answer).strip().lower()
+        # by number in label, e.g., DLA_3_talk -> 3
+        m = re.findall(r"\d+", ans)
+        if m:
+            n = int(m[0])
+            for (_, i0, j0, lbl0) in candidates:
+                m2 = re.search(r"DLA_(\d+)_", lbl0, flags=re.IGNORECASE)
+                if m2 and int(m2.group(1)) == n:
+                    return (i0, j0, lbl0)
+        # by label keyword (tail), e.g., 'talk'
+        for (_, i0, j0, lbl0) in candidates:
+            parts = lbl0.split("_", 2)
+            tail = parts[2] if len(parts) >= 3 else lbl0
+            if tail.lower() in ans or lbl0.lower() in ans:
+                return (i0, j0, lbl0)
+        return None
+
+    chosen = _pick_candidate(resp)
+    if chosen is None:
+        # one retry to clarify
+        opts = "; ".join([f"{k}) {lbl}" for (k, _, _, lbl) in candidates])
+        log_question(f"Please choose ONE by number or label among: {opts}")
+        resp = get_resp_log()
+        if isinstance(resp, str) and resp.strip().lower().find("stop") != -1:
+            logger.info("User requested stop at CBT stage 0 retry.")
+            return
+        chosen = _pick_candidate(resp)
+        if chosen is None:
+            logger.info("Failed to parse user choice for CBT stage 0. Exit CBT.")
+            log_question("I could not determine your choice. We will stop CBT for now.")
+            return
+
+    i_sel, j_sel, label_sel = chosen
+    logger.info(f"CBT dimension chosen: [{label_sel}] at ({i_sel},{j_sel}).")
+
+    # Stage 1: collect statement and unhelpful thoughts
+    log_question(f"For the dimension '{label_sel}', please briefly describe the situation you want to work on (1-3 sentences).")
+    statement = get_resp_log()
+    if isinstance(statement, str) and statement.strip().lower().find("stop") != -1:
+        logger.info("User requested stop at CBT before stage 1 question.")
+        return
+
+    log_question("Can you try to identify any unhelpful thoughts you have that contribute to this situation?")
+    unhelpful = get_resp_log()
+    if isinstance(unhelpful, str) and unhelpful.strip().lower().find("stop") != -1:
+        logger.info("User requested stop at CBT stage 1.")
+        return
+
+    # Reason and guide up to two retries
+    dec1_raw = stage1_reasoner(statement, unhelpful)
+    dec1 = "0" if "0" in dec1_raw else "1"
+    retry = 0
+    while dec1 == "1" and retry < 2:
+        guide1 = stage1_guide(statement)
+        log_question(guide1)
+        log_question("Please provide your UNHELPFUL_THOUGHTS again, in one sentence.")
+        unhelpful = get_resp_log()
+        if isinstance(unhelpful, str) and unhelpful.strip().lower().find("stop") != -1:
+            logger.info("User requested stop during CBT stage 1 retry.")
+            return
+        dec1_raw = stage1_reasoner(statement, unhelpful)
+        dec1 = "0" if "0" in dec1_raw else "1"
+        retry += 1
+    if dec1 == "1":
+        log_question("It seems difficult to identify the unhelpful thoughts right now. Let's pause CBT and revisit later.")
+        # record brief CBT notes
+        question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+            f"CBT_dimension: {label_sel}",
+            f"CBT_statement: {statement}",
+            f"CBT_unhelpful_thoughts: {unhelpful}",
+            "CBT_stage: 1_failed"
+        ])
+        return
+
+    # Stage 2: challenge the unhelpful thoughts
+    log_question("Now, how could you challenge those unhelpful thoughts? Please write a brief challenge.")
+    challenge = get_resp_log()
+    if isinstance(challenge, str) and challenge.strip().lower().find("stop") != -1:
+        logger.info("User requested stop at CBT stage 2.")
+        return
+
+    dec2_raw = stage2_reasoner(statement, unhelpful, challenge)
+    dec2 = "0" if "0" in dec2_raw else "1"
+    retry = 0
+    while dec2 == "1" and retry < 2:
+        guide2 = stage2_guide(statement, unhelpful)
+        log_question(guide2)
+        log_question("Please try to CHALLENGE the unhelpful thoughts again, in one sentence.")
+        challenge = get_resp_log()
+        if isinstance(challenge, str) and challenge.strip().lower().find("stop") != -1:
+            logger.info("User requested stop during CBT stage 2 retry.")
+            return
+        dec2_raw = stage2_reasoner(statement, unhelpful, challenge)
+        dec2 = "0" if "0" in dec2_raw else "1"
+        retry += 1
+    if dec2 == "1":
+        log_question("Challenging the thought seems difficult now. Let's pause CBT and revisit later.")
+        question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+            f"CBT_dimension: {label_sel}",
+            f"CBT_statement: {statement}",
+            f"CBT_unhelpful_thoughts: {unhelpful}",
+            f"CBT_challenge: {challenge}",
+            "CBT_stage: 2_failed"
+        ])
+        return
+
+    # Stage 3: reframe the thought
+    log_question("Finally, can you reframe the unhelpful thought into a more balanced, constructive one?")
+    reframe = get_resp_log()
+    if isinstance(reframe, str) and reframe.strip().lower().find("stop") != -1:
+        logger.info("User requested stop at CBT stage 3.")
+        return
+
+    dec3_raw = stage3_reasoner(statement, unhelpful, challenge, reframe)
+    dec3 = "0" if "0" in dec3_raw else "1"
+    retry = 0
+    while dec3 == "1" and retry < 2:
+        guide3 = stage3_guide(statement, unhelpful, challenge)
+        log_question(guide3)
+        log_question("Please REFRAME again in one or two sentences.")
+        reframe = get_resp_log()
+        if isinstance(reframe, str) and reframe.strip().lower().find("stop") != -1:
+            logger.info("User requested stop during CBT stage 3 retry.")
+            return
+        dec3_raw = stage3_reasoner(statement, unhelpful, challenge, reframe)
+        dec3 = "0" if "0" in dec3_raw else "1"
+        retry += 1
+    if dec3 == "1":
+        log_question("Reframing seems hard right now. Let's pause CBT and revisit later.")
+        question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+            f"CBT_dimension: {label_sel}",
+            f"CBT_statement: {statement}",
+            f"CBT_unhelpful_thoughts: {unhelpful}",
+            f"CBT_challenge: {challenge}",
+            f"CBT_reframe: {reframe}",
+            "CBT_stage: 3_failed"
+        ])
+        return
+
+    # Success
+    question_lib[str(i_sel)][str(j_sel)]["notes"].append([
+        f"CBT_dimension: {label_sel}",
+        f"CBT_statement: {statement}",
+        f"CBT_unhelpful_thoughts: {unhelpful}",
+        f"CBT_challenge: {challenge}",
+        f"CBT_reframe: {reframe}",
+        "CBT_stage: success"
+    ])
+    log_question("Great work today. We completed the CBT steps for this topic. Thank you for your effort.")
 
 
