@@ -3,8 +3,8 @@ import re
 from src.utils.llm_client import llm_complete
 
 # Set up logger for this module
-from src.utils.log_util import get_logger, log_question
-from src.utils.io_record import get_resp_log
+from src.utils.log_util import get_logger
+from src.utils.io_record import get_resp_log, log_question, set_question_prefix
 logger = get_logger("CBT")
 
 
@@ -169,6 +169,23 @@ Example 2:
 DECISION: 1
 '''
 
+# Rephrase recap for Stage 3 based on user's CHALLENGE
+RECAP_CBT_STAGE3_CHALLENGE_PROMPT = '''You are a concise and supportive therapist-assistant.
+
+You will be provided with:
+1) The patient's brief STATEMENT of the situation
+2) The patient's identified UNHELPFUL_THOUGHTS
+3) The patient's CHALLENGE to those thoughts
+
+Your task is to rephrase the patient's CHALLENGE into a short recap that reminds the patient what they already did to challenge their thoughts. Be neutral, supportive, and concise.
+
+Rules:
+- 1-2 sentences only
+- No extra headers or labels, output the recap directly
+- Do not add new ideas beyond the user's content
+- Use second-person neutral tone (you/your)
+'''
+
 GUIDE_CBT_STAGE1_PROMPT = '''You are an AI assistant who has rich psychology and mental health commonsense knowledge and strong reasoning abilities.
 You are trying to answer the cognitive behavioural therapy (CBT) questions based-on patient's statement provided.
 
@@ -284,6 +301,14 @@ def stage3_guide(statement: str, unhelpful_thoughts: str, challenge: str) -> str
     payload = f"STATEMENT: {statement}. UNHELPFUL_THOUGHTS: {unhelpful_thoughts}. CHALLENGE: {challenge}"
     return _chat_complete(GUIDE_CBT_STAGE3_PROMPT, payload)
 
+def recap_stage3_challenge(statement: str, unhelpful_thoughts: str, challenge: str) -> str:
+    payload = (
+        f"STATEMENT: {statement}\n"
+        f"UNHELPFUL_THOUGHTS: {unhelpful_thoughts}\n"
+        f"CHALLENGE: {challenge}"
+    )
+    return _chat_complete(RECAP_CBT_STAGE3_CHALLENGE_PROMPT, payload)
+
 __all__ = [
     "stage0_prompter",
     "stage1_reasoner",
@@ -302,13 +327,20 @@ def run_cbt(question_lib):
     """
     logger.info("Starting CBT flow (stages 0-3).")
     # 0) Collect dimensions with score=2
-    candidates = []  # list of (idx, i, j, label)
+    # candidates: list of (idx_shown, i, j, label_internal, name_human)
+    candidates = []
     idx = 1
     for i in range(1, len(question_lib) + 1):
         for j in range(1, len(question_lib[str(i)]) + 1):
             entry = question_lib[str(i)][str(j)]
             if any((s == 2) for s in entry.get("score", [])):
-                candidates.append((idx, i, j, entry["label"]))
+                candidates.append((
+                    idx,
+                    i,
+                    j,
+                    entry["label"],
+                    entry.get("name", entry["label"]),
+                ))
                 idx += 1
 
     if not candidates:
@@ -316,17 +348,18 @@ def run_cbt(question_lib):
         log_question("We do not have a dimension at score 2 to work on today. We will conclude here.")
         return
 
-    # Build a brief 'history' listing choices for stage0_prompter
-    history_lines = ["DIMENSIONS WITH SCORE=2:"]
-    for k, _, _, lbl in candidates:
-        history_lines.append(f"{k}) {lbl}")
-    history = "\n".join(history_lines)
-
-    # Stage 0: ask the user to choose a dimension
-    q0 = stage0_prompter(history)
-    q0_clean = q0.strip()
-    if q0_clean.lower().startswith("question:"):
-        q0_clean = q0_clean.split(":", 1)[1].strip()
+    # Stage 0: directly ask the user to choose a dimension by the shown index
+    lines = [
+        "Thank you for answering the questions.",
+        "According to your previous responses, you have issue in:",
+    ]
+    for k, _, _, _, name0 in candidates:
+        lines.append(f"{k}) {name0}")
+    lines.append(
+        "Which dimension would you like to work on today? "
+        "Tell me the dimension number. For example: 1"
+    )
+    q0_clean = " \n".join(lines)
     log_question(q0_clean)
     resp = get_resp_log()
     if isinstance(resp, str) and resp.strip().lower().find("stop") != -1:
@@ -335,27 +368,27 @@ def run_cbt(question_lib):
 
     def _pick_candidate(answer: str):
         ans = str(answer).strip().lower()
-        # by number in label, e.g., DLA_3_talk -> 3
+        # Prefer selecting by the shown index (e.g., "1")
         m = re.findall(r"\d+", ans)
         if m:
             n = int(m[0])
-            for (_, i0, j0, lbl0) in candidates:
-                m2 = re.search(r"DLA_(\d+)_", lbl0, flags=re.IGNORECASE)
-                if m2 and int(m2.group(1)) == n:
-                    return (i0, j0, lbl0)
-        # by label keyword (tail), e.g., 'talk'
-        for (_, i0, j0, lbl0) in candidates:
-            parts = lbl0.split("_", 2)
-            tail = parts[2] if len(parts) >= 3 else lbl0
-            if tail.lower() in ans or lbl0.lower() in ans:
-                return (i0, j0, lbl0)
+            for (k0, i0, j0, lbl0, name0) in candidates:
+                if k0 == n:
+                    return (i0, j0, lbl0, name0)
+        # Fallback: try matching by human name or internal label keyword
+        for (_, i0, j0, lbl0, name0) in candidates:
+            if name0.lower() in ans or lbl0.lower() in ans:
+                return (i0, j0, lbl0, name0)
         return None
 
     chosen = _pick_candidate(resp)
     if chosen is None:
         # one retry to clarify
-        opts = "; ".join([f"{k}) {lbl}" for (k, _, _, lbl) in candidates])
-        log_question(f"Please choose ONE by number or label among: {opts}")
+        opts = "; ".join([f"{k}) {name0}" for (k, _, _, _, name0) in candidates])
+        log_question(
+            f"Please reply with a single number between 1 and {len(candidates)}. "
+            f"Example: 1. Options: {opts}"
+        )
         resp = get_resp_log()
         if isinstance(resp, str) and resp.strip().lower().find("stop") != -1:
             logger.info("User requested stop at CBT stage 0 retry.")
@@ -366,16 +399,47 @@ def run_cbt(question_lib):
             log_question("I could not determine your choice. We will stop CBT for now.")
             return
 
-    i_sel, j_sel, label_sel = chosen
-    logger.info(f"CBT dimension chosen: [{label_sel}] at ({i_sel},{j_sel}).")
+    i_sel, j_sel, label_sel, name_sel = chosen
+    logger.info(f"CBT dimension chosen: [{label_sel}] ({name_sel}) at ({i_sel},{j_sel}).")
 
-    # Stage 1: collect statement and unhelpful thoughts
-    log_question(f"For the dimension '{label_sel}', please briefly describe the situation you want to work on (1-3 sentences).")
-    statement = get_resp_log()
-    if isinstance(statement, str) and statement.strip().lower().find("stop") != -1:
-        logger.info("User requested stop at CBT before stage 1 question.")
-        return
+    # Stage 1: derive statement from RV notes of the chosen dimension
+    # Prefer the latest RV follow-up response (followup_resp_1),
+    # then fallback to followup_resp, then original_resp.
+    statement = ""
+    notes_list = question_lib[str(i_sel)][str(j_sel)].get("notes", [])
+    for note_entry in reversed(notes_list):
+        if not isinstance(note_entry, list):
+            continue
+        # Only consider RV note entries by checking the presence of rv fields
+        has_rv_field = any((isinstance(x, str) and ("rv_decision:" in x or "rv_validation:" in x)) for x in note_entry)
+        if not has_rv_field:
+            continue
+        # Try to extract in priority order
+        for s in note_entry:
+            if isinstance(s, str) and s.startswith("followup_resp_1: "):
+                statement = s.split(": ", 1)[1]
+                break
+        if statement:
+            break
+        for s in note_entry:
+            if isinstance(s, str) and s.startswith("followup_resp: "):
+                statement = s.split(": ", 1)[1]
+                break
+        if statement:
+            break
+        for s in note_entry:
+            if isinstance(s, str) and s.startswith("original_resp: "):
+                statement = s.split(": ", 1)[1]
+                break
+        if statement:
+            break
 
+    # Add recap prefix (similar to RV), then ask to identify unhelpful thoughts
+    recap = (
+        f"Let us work on dimension '{name_sel}'. "
+        f"From our record, you mentioned that: {statement}"
+    )
+    set_question_prefix(recap)
     log_question("Can you try to identify any unhelpful thoughts you have that contribute to this situation?")
     unhelpful = get_resp_log()
     if isinstance(unhelpful, str) and unhelpful.strip().lower().find("stop") != -1:
@@ -440,7 +504,9 @@ def run_cbt(question_lib):
         ])
         return
 
-    # Stage 3: reframe the thought
+    # Stage 3: reframe the thought (prepend an LLM-rephrased recap of user's CHALLENGE)
+    recap3 = recap_stage3_challenge(statement, unhelpful, challenge)
+    set_question_prefix(recap3.strip())
     log_question("Finally, can you reframe the unhelpful thought into a more balanced, constructive one?")
     reframe = get_resp_log()
     if isinstance(reframe, str) and reframe.strip().lower().find("stop") != -1:

@@ -45,9 +45,9 @@ def get_logger(name, file=None, file_handler=None):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)  # file 仍写 DEBUG
 
-    # 控制台日志级别来自环境变量，默认 WARNING 以避免打断交互
-    console_level_name = os.environ.get("CONSOLE_LOG_LEVEL", "WARNING").upper()
-    console_level = getattr(logging, console_level_name, logging.WARNING)
+    # 控制台日志级别来自环境变量，默认 DEBUG
+    console_level_name = os.environ.get("CONSOLE_LOG_LEVEL", "INFO").upper()
+    console_level = getattr(logging, console_level_name, logging.INFO)
 
     # 避免重复添加 handler
     if not any(isinstance(h, logging.StreamHandler) for h in logger.handlers):

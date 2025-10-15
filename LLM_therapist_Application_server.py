@@ -112,6 +112,7 @@ def gpt():
     if user_input.lower().strip() == "start":
         _ensure_record_file()
         _start_rl_if_needed()
+        # Return the first question produced by RL (which now handles greeting itself)
         question = _get_question_blocking()
         return jsonify({"subject_ID": subject_id, "question": question})
 

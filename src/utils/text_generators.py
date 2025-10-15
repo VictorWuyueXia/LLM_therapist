@@ -72,7 +72,7 @@ def generate_therapist_chat(user_input):
     Use OpenAI API to generate a therapist-like response to the user's input.
     """
     result = llm_complete(
-        "Chat with people as a therapist.",
+        "Chat with people as a virtual AI therapist.",
         generate_prompt_therapist(user_input)
     )
     logger.info(f"generate_therapist_chat: {result}")

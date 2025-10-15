@@ -11,6 +11,19 @@ logger = get_logger("IORecord")
 
 HEADER = ["Question", "Question_Lock", "Resp", "Resp_Lock"]
 
+# Module-level buffer to prepend content to the next question output.
+# When non-empty, its content will be combined with the next question
+# using two newline characters as the separator, then cleared.
+_PENDING_QUESTION_PREFIX = ""
+
+def set_question_prefix(text: str):
+    """
+    Set a pending prefix that will be prepended to the next question output.
+    The prefix will be combined with two newlines between the prefix and the question.
+    """
+    global _PENDING_QUESTION_PREFIX
+    _PENDING_QUESTION_PREFIX = str(text) if text is not None else ""
+
 def _read():
     last_exc = None
     for _ in range(5):
@@ -37,10 +50,18 @@ def log_question(text: str):
         time.sleep(0.1)
         data = _read()
         if data.loc[0, "Question_Lock"] == 0:
-            data.loc[0, "Question"] = text
+            # If there is a pending prefix (e.g., RV validation), combine it with the question
+            global _PENDING_QUESTION_PREFIX
+            combined = text
+            if _PENDING_QUESTION_PREFIX:
+                combined = f"{_PENDING_QUESTION_PREFIX}\n\n{text}"
+                logger.info("Combining pending prefix with next question using two newlines.")
+            data.loc[0, "Question"] = combined
             data.loc[0, "Question_Lock"] = 1
             _write(data)
-            logger.info(f"Prompted question: {text}")
+            # Clear the prefix once consumed
+            _PENDING_QUESTION_PREFIX = ""
+            logger.info(f"Prompted question: {combined}")
             break
 
 def get_answer():
@@ -69,12 +90,12 @@ def get_resp_log():
         time.sleep(0.1)
         data = _read()
         if data.loc[0, "Resp_Lock"] == 0:
-            follow = data.loc[0, "Resp"]
+            user_response = data.loc[0, "Resp"]
             data.loc[0, "Resp_Lock"] = 1
             _write(data)
-            logger.info(f"Received response: {follow}")
+            logger.info(f"Received user response: {user_response}")
             break
-    return follow
+    return user_response
 
 def init_record():
     try:
