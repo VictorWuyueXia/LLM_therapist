@@ -183,38 +183,45 @@ class HandlerRL:
         generate_results(self.question_lib, self.new_response)
         logger.info("Generated final results for this session.")
 
-        # Deliver concluding message (LLM-generated), using CBT summary if available
+        # Deliver concluding message (LLM-generated) only if CBT was NOT used
+        # If CBT ran, its own final message is the user-visible conclusion. Avoid double messages due to lock semantics.
         try:
             cbt_used, cbt_summary = self._detect_cbt_summary()
-            sys_prompt = (
-                "You are a warm, concise, and professional therapist-assistant.\n\n"
-                "Background: This message appears at the end of a brief screening/CBT session.\n"
-                "Goal: Generate a short closing message for the user.\n\n"
-                "Inputs you may receive:\n"
-                "- cbt_used: whether CBT was conducted in this session (true/false).\n"
-                "- session_summary: brief bullet/lines from the session (if available).\n\n"
-                "Instructions:\n"
-                "- If cbt_used is true: Congratulate the user for working on CBT today, acknowledge their effort, and say goodbye.\n"
-                "- If cbt_used is false: Indicate there is no area of concern identified today and say goodbye.\n"
-                "- 1–2 sentences only.\n"
-                "- Friendly, non-judgmental tone.\n"
-                "- No headers or labels; output the final message directly.\n"
-            )
-            user_payload = (
-                f"cbt_used: {str(cbt_used).lower()}\n" + (f"session_summary:\n{cbt_summary}" if cbt_summary else "")
-            )
-            closing = llm_complete(sys_prompt, user_payload).strip()
-            time.sleep(0.5)
-            log_question(closing)
-            time.sleep(0.5)
-            self._unlock_question_if_stuck()
+            if not cbt_used:
+                sys_prompt = (
+                    "You are a warm, concise, and professional therapist-assistant.\n\n"
+                    "Background: This message appears at the end of a brief screening/CBT session.\n"
+                    "Goal: Generate a short closing message for the user.\n\n"
+                    "Inputs you may receive:\n"
+                    "- cbt_used: whether CBT was conducted in this session (true/false).\n"
+                    "- session_summary: brief bullet/lines from the session (if available).\n\n"
+                    "Instructions:\n"
+                    "- If cbt_used is true: Congratulate the user for working on CBT today, acknowledge their effort, and say goodbye.\n"
+                    "- If cbt_used is false: Indicate there is no area of concern identified today and say goodbye.\n"
+                    "- 1–2 sentences only.\n"
+                    "- Friendly, non-judgmental tone.\n"
+                    "- No headers or labels; output the final message directly.\n"
+                )
+                user_payload = (
+                    f"cbt_used: {str(cbt_used).lower()}\n" + (f"session_summary:\n{cbt_summary}" if cbt_summary else "")
+                )
+                closing = llm_complete(sys_prompt, user_payload).strip()
+                time.sleep(0.5)
+                log_question(closing)
+                time.sleep(0.5)
+                self._unlock_question_if_stuck()
+            else:
+                logger.info("CBT delivered its own closing; skipping RL-level closing to avoid double message.")
         except Exception as e:
             logger.warning(f"Concluding message generation failed: {e}")
-            fallback = "Thank you for your time today. Take care, and goodbye."
-            time.sleep(0.5)
-            log_question(fallback)
-            time.sleep(0.5)
-            self._unlock_question_if_stuck()
+            # Only attempt fallback if CBT was not used
+            cbt_used, _ = self._detect_cbt_summary()
+            if not cbt_used:
+                fallback = "Thank you for your time today. Take care, and goodbye."
+                time.sleep(0.5)
+                log_question(fallback)
+                time.sleep(0.5)
+                self._unlock_question_if_stuck()
 
     def _detect_cbt_summary(self) -> tuple:
         """Return (cbt_used, summary_str) by scanning question_lib notes for CBT markers."""

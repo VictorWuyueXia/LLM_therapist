@@ -22,7 +22,8 @@ DECISION = 0 if the follow-up response is related to the "Original Response" or 
 Response format:
 DECISION: 0/1
 
-Provide response with [DECISION] only. Do not put excessive analysis and small talk in the response.
+Provide response with [DECISION] only. Do not put excessive analysis and small talk in the response. Don't output any open-ended questions or invitation for follow-up to the user.
+
 
 Example 1:
 {"Topic": Managing mood, "Original Response": I am sad recently."Follow Up Response": I am sad because I am homesick. I haven't been back home for a few years due to Covid-19. }
@@ -59,6 +60,7 @@ Goal:
 You need to guide the user to comeup with the valid follow-up response, which should give more details to your original response or the topic.
 You need to first express the understanding to the client's follow-up response, and then try to lead the client to the right direction.
 Don't read into the clients' mind and make too much assumptions. Try to use the phrases used by the client in your response, instead of rephrasing too much.
+Don't output any open-ended questions or invitation for follow-up to the user.
 
 Response format:
 Guide: xxxx
@@ -103,6 +105,7 @@ Goal:
 You need to provide empathic validation and support to the client based on the conversation topic, origianl response, and followup response.
 You need to first express the understanding to the client's follow-up response, and then try to lead the client to the right direction.
 Don't read into the clients' mind and make too much assumptions. Try to use the phrases used by the client in your response, instead of rephrasing too much.
+Don't output any open-ended questions or invitation for follow-up to the user.
 
 Formatting constraints (very important):
 - Use ASCII characters only. Do not output smart quotes or special dashes.
